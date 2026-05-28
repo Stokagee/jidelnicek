@@ -161,6 +161,14 @@ uv run robot --outputdir results/robot tests/acceptance/suites   # in another
 `robot -v API_BASE_URL:<url> …`). Shared keywords live in
 `tests/acceptance/resources/`, request schemas in `tests/acceptance/schemas/`.
 
+Tests-first AC suites whose endpoints aren't implemented yet are tagged `notready`.
+Run with `--skiponfailure notready` so they report as **skipped** (not failed) until
+the owning epic lands:
+
+```sh
+uv run robot --skiponfailure notready --outputdir results/robot tests/acceptance/suites
+```
+
 ### Frontend (web)
 
 ```sh
