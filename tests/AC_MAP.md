@@ -22,7 +22,7 @@ impl · `pass` = green.
 | AC-9 | Worker catch-up sends missed digest on startup (FR-N4) | EP-8 | `integration/test_ep8_notifications.py::test_worker_catch_up_sends_missed_digest_on_startup_AC9` | — | skeleton |
 | AC-10 | Failed Discord delivery is retried (FR-N6) | EP-8 | `integration/test_ep8_notifications.py::test_failed_discord_delivery_is_retried_AC10` | — | skeleton |
 | AC-11 | Valid claim token activates account, not reusable (FR-A3) | EP-3 | `integration/test_ep3_auth.py::test_claim_sets_name_password_then_token_reuse_fails_AC11` | `acceptance/suites/ep3_auth.robot` | xfail (T-3.1) |
-| AC-12 | Non-creator/non-admin cannot delete a dish (FR-D5, BR-5) | EP-5 | `integration/test_ep5_dishes.py::test_non_creator_non_admin_member_cannot_delete_dish_AC12` | — | skeleton |
+| AC-12 | Non-creator/non-admin cannot delete a dish (FR-D5, BR-5) | EP-5 | `integration/test_ep5_dishes.py::test_non_creator_non_admin_member_cannot_delete_dish_AC12` | — | xfail (T-5.1) |
 
 Robot acceptance suites exist for the AC marked end-to-end in the `testing` skill
 (AC-1, AC-5, AC-11); the rest are covered at integration level.
