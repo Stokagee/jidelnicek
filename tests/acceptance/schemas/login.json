@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Login request body (POST /auth/login) — name + password (FR-A4)",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "minLength": 2, "maxLength": 64 },
+    "password": { "type": "string", "format": "password", "minLength": 8, "maxLength": 72 }
+  },
+  "required": ["name", "password"]
+}

@@ -34,6 +34,9 @@ dev = [
     "robotframework-requests>=0.9",
     "freezegun>=1.5",
     "python-dotenv>=1.0",
+    # Schema-driven test-data generation + strict response validation for the
+    # Robot acceptance layer. Local path dependency (see [tool.uv.sources]).
+    "TalosForge",
 ]
 
 [project.scripts]
@@ -44,6 +47,13 @@ seed = "shared.scripts.seed:cli"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# TalosForge (Robot Framework data-gen + schema validation) lives in a sibling
+# repo and is consumed editable. It is dev/test-only — not a runtime dependency
+# of api/worker. Add the `[db]` extra here if a suite needs its Postgres schema
+# reader. CI/other machines need this path present (private home project).
+[tool.uv.sources]
+TalosForge = { path = "../robotframework-talosforge", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = ["api", "worker", "shared"]
