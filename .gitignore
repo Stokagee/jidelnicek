@@ -1,0 +1,58 @@
+# --- Bootstrap input (one-time) ---
+claude-code-bootstrap-prompt.md
+
+# --- Claude Code local state ---
+.claude/settings.local.json
+.claude/projects/
+
+# --- Secrets / local env ---
+.env
+.env.*
+!.env.example
+
+# --- Python / uv ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Node / pnpm / Vite ---
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+dist/
+build/
+.vite/
+*.log
+
+# --- Editor / OS ---
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Docker / local data ---
+infra/grafana/data/
+infra/prometheus/data/
+*.local
+.claude/
+/
+jidelnicek-docs-v1.md
+CLAUDE.md
