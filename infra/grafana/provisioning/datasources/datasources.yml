@@ -1,0 +1,12 @@
+# Grafana datasource provisioning (FR-O3). T-0.2 ships a Prometheus datasource;
+# the Postgres datasource for business dashboards lands in EP-9 (T-9.2).
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    uid: prometheus
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

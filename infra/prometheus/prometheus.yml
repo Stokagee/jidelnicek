@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    deployment: home
+
+# T-0.2 ships a minimal scrape config. The api job will report DOWN until
+# FR-O1 (`/metrics`) is implemented in EP-9 (T-9.1).
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]

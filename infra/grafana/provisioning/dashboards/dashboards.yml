@@ -1,0 +1,15 @@
+# T-0.2 placeholder. The sample dashboard (api health + one business panel)
+# is provisioned in EP-9 (T-9.3) under `dashboards/`.
+apiVersion: 1
+
+providers:
+  - name: home
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true
