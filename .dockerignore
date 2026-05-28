@@ -1,0 +1,27 @@
+# Files irrelevant to image builds. Keeps build context small and avoids
+# leaking local state into images.
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+.ruff_cache
+.mypy_cache
+.pytest_cache
+.pnpm-store
+node_modules
+web/node_modules
+web/dist
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.editorconfig
+.claude
+docs
+tests
+README.md
+CLAUDE.md
+jidelnicek-docs-v1.md
+claude-code-bootstrap-prompt.md
