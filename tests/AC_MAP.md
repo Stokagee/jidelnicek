@@ -15,7 +15,7 @@ impl · `pass` = green.
 | AC-2 | Portions must be ≥ 1 (BR-4) | EP-6 | `integration/test_ep6_signups.py::test_signup_portions_must_be_at_least_one_AC2` | — | skeleton |
 | AC-3 | Re-signup updates existing row, no duplicate (BR-3) | EP-6 | `integration/test_ep6_signups.py::test_resignup_same_day_updates_existing_AC3` | — | skeleton |
 | AC-4 | Day summary includes admin's own portions (FR-K1/K2) | EP-7 | `integration/test_ep7_summary.py::test_day_summary_includes_admin_own_portions_AC4` | — | skeleton |
-| AC-5 | Non-chooser member cannot create a dish (FR-W4) | EP-4 | `integration/test_ep4_week_chooser.py::test_non_chooser_member_cannot_create_dish_AC5` | `acceptance/suites/ep4_week_chooser.robot` | skeleton |
+| AC-5 | Non-chooser member cannot create a dish (FR-W4) | EP-4 | `integration/test_ep4_week_chooser.py::test_non_chooser_member_cannot_create_dish_AC5` | `acceptance/suites/ep4_week_chooser.robot` | xfail (T-4.1) |
 | AC-6 | Member signs up to a chooser-proposed dish (FR-S3) | EP-6 | `integration/test_ep6_signups.py::test_member_can_signup_to_chooser_proposed_dish_AC6` | — | skeleton |
 | AC-7 | Cancel → `signup_cancelled` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_cancel_signup_writes_signup_cancelled_outbox_row_AC7` | — | skeleton |
 | AC-8 | Increase portions → `signup_increased` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_increase_portions_writes_signup_increased_outbox_row_AC8` | — | skeleton |
