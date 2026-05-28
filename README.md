@@ -124,9 +124,28 @@ uv run alembic -c shared/alembic.ini revision -m "describe change" --autogenerat
 uv run alembic -c shared/alembic.ini upgrade head
 uv run alembic -c shared/alembic.ini downgrade -1   # local rollback only
 
-# Tests
+# Tests (unit + integration)
 uv run pytest
 ```
+
+### Tests
+
+Unit and integration tests use **pytest** against a **dedicated, disposable Postgres
+database** — never the dev DB. The suite creates the database if missing, runs the Alembic
+migrations into it, and rolls back each test in its own transaction.
+
+Prerequisites: the `db` service running (`docker compose … up -d db`) and a `.env` (the suite
+loads it automatically). The test DB URL is taken from `TEST_DATABASE_URL`, or derived from
+`DATABASE_URL` (host `db`→`localhost`, name suffixed `_test`).
+
+```sh
+uv run pytest                 # unit + integration
+uv run pytest -m "not slow"   # fast loop
+uv run pytest -rx             # show xfail list = the tests-first backlog
+```
+
+Feature tests are written **before** their implementation (BDD / tests-first); until the
+owning epic lands they are marked `xfail`, so a green run is expected.
 
 ### Frontend (web)
 
