@@ -147,6 +147,20 @@ uv run pytest -rx             # show xfail list = the tests-first backlog
 Feature tests are written **before** their implementation (BDD / tests-first); until the
 owning epic lands they are marked `xfail`, so a green run is expected.
 
+**Acceptance / API tests (Robot Framework).** These drive the cookie-session flow exactly as
+the browser does and use [TalosForge](../robotframework-talosforge) (a sibling repo, wired as a
+uv path dependency) for schema-driven request payloads and strict response validation. They
+need a **running api**:
+
+```sh
+uv run uvicorn api.main:app --host 127.0.0.1 --port 8000   # in one shell
+uv run robot --outputdir results/robot tests/acceptance/suites   # in another
+```
+
+`${API_BASE_URL}` defaults to `http://127.0.0.1:8000` (override with
+`robot -v API_BASE_URL:<url> …`). Shared keywords live in
+`tests/acceptance/resources/`, request schemas in `tests/acceptance/schemas/`.
+
 ### Frontend (web)
 
 ```sh

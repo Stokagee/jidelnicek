@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Signup request body (POST /signups) — day + portions (FR-S1)",
+  "description": "dish_id and the concrete day are supplied by the test; portions is >= 1 (BR-4).",
+  "type": "object",
+  "properties": {
+    "day": { "type": "string", "format": "date" },
+    "portions": { "type": "integer", "minimum": 1, "maximum": 10 }
+  },
+  "required": ["day", "portions"]
+}

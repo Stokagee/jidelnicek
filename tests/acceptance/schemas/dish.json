@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dish request body (POST /dishes) — free-text name + day block (FR-D1)",
+  "description": "week_id and the concrete block dates are supplied by the test; generation covers the free-text name.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 200,
+      "examples": ["Svíčková", "Guláš", "Rajská", "Čočka na kyselo", "Kuře s rýží"]
+    },
+    "start_date": { "type": "string", "format": "date" },
+    "end_date": { "type": "string", "format": "date" }
+  },
+  "required": ["name", "start_date", "end_date"]
+}

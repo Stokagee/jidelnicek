@@ -30,6 +30,11 @@ dist/
 htmlcov/
 .tox/
 
+# --- Test artifacts ---
+results/
+.robot_out.txt
+.pytest_out.txt
+
 # --- Node / pnpm / Vite ---
 node_modules/
 .pnpm-store/
