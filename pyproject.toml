@@ -33,6 +33,7 @@ dev = [
     "robotframework>=7.1",
     "robotframework-requests>=0.9",
     "freezegun>=1.5",
+    "python-dotenv>=1.0",
 ]
 
 [project.scripts]
@@ -80,3 +81,7 @@ indent-style = "space"
 testpaths = ["tests/unit", "tests/integration"]
 addopts = "-ra -q"
 asyncio_mode = "auto"
+pythonpath = ["."]
+markers = [
+    "slow: tests that are slow to run (deselect with -m 'not slow')",
+]
