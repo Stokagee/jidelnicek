@@ -9,7 +9,7 @@ import os
 
 from fastapi import FastAPI
 
-from api.routers import auth, dishes, signups, weeks
+from api.routers import auth, dishes, signups, summary, weeks
 
 
 def create_app() -> FastAPI:
@@ -23,6 +23,7 @@ def create_app() -> FastAPI:
     app.include_router(weeks.router)
     app.include_router(dishes.router)
     app.include_router(signups.router)
+    app.include_router(summary.router)
     return app
 
 
