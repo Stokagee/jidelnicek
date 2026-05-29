@@ -26,3 +26,25 @@ impl · `pass` = green.
 
 Robot acceptance suites exist for the AC marked end-to-end in the `testing` skill
 (AC-1, AC-5, AC-11); the rest are covered at integration level.
+
+## Frontend (web) acceptance — EP-10
+
+The `phase:3-frontend` screens are exercised end-to-end through the browser with Robot
+Framework's **Browser Library (Playwright)**. These `fe_*` suites SEED state over HTTP
+(`resources/api_session.resource`) and DRIVE the UI on a 360px mobile context
+(`resources/browser_session.resource` + `resources/pages/*.resource`). Like the backend
+acceptance suites they are tagged `notready` and run with
+`robot --skiponfailure notready tests/acceptance/suites/fe_*.robot`, reporting **skipped**
+until the owning screen ships; the implementation ticket (`T-x.3`) removes the tag.
+
+Unit/component coverage (vitest + React Testing Library) lives co-located under `web/src`.
+
+Status legend additions: `infra` = harness only, no screen yet.
+
+| AC (UI path) | Screen (§14) | FE test ticket → impl | vitest (web/src) | Robot (fe_*) | Status |
+|----|---------------|-------------|--------|-------|--------|
+| — | test base / harness | T-10.0 | `test/infra.smoke.test.ts` | `acceptance/suites/fe_smoke.robot` | infra (pass/skip) |
+| AC-11 | Claim + Login (§14.1/.2) | T-3.4 → T-3.3 | `api/*`, `auth/*` (planned) | `acceptance/suites/fe_ep3_auth_ui.robot` (planned) | planned |
+| AC-4 | This week + Cook summary (§14.3/.5) | T-7.4 → T-7.3 | `api/weeks`, summary helpers (planned) | `acceptance/suites/fe_ep7_summary_ui.robot` (planned) | planned |
+| AC-1, AC-2, AC-3, AC-6 | Dish signup (§14.4) | T-6.4 → T-6.3 | `domain/block`, `domain/portions`, signup merge (planned) | `acceptance/suites/fe_ep6_signups_ui.robot` (planned) | planned |
+| AC-5, AC-6 | Chooser propose / create-edit dish (§14.5) | T-4.4/T-5.4 → T-4.3/T-5.3 | `api/dishes`, guards (planned) | `acceptance/suites/fe_ep4_dishes_ui.robot` (planned) | planned |
