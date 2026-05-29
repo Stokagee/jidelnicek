@@ -15,16 +15,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import timedelta
 
-import pytest
 from sqlalchemy.orm import Session
 
 from shared.models import User, Week
 from tests.fixtures.factories import DEFAULT_PASSWORD
-
-pytestmark = pytest.mark.xfail(
-    reason="EP-4 week/chooser endpoints not implemented yet (T-4.2)",
-    strict=True,
-)
 
 
 def _dish_payload(week: Week, name: str = "Guláš") -> dict:
