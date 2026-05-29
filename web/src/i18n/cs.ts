@@ -28,6 +28,17 @@ export const cs = {
     placeholder: 'Tento týden — připravujeme.',
     logout: 'Odhlásit se',
   },
+  signup: {
+    title: 'Přihláška na jídlo',
+    pickDay: 'Vyber den z bloku jídla:',
+    portionsLabel: 'Počet porcí',
+    submit: 'Přihlásit se',
+    cancel: 'Zrušit přihlášku',
+    signedUp: 'Přihlášeno.',
+    noDay: 'Vyber prosím den.',
+    invalidPortions: 'Počet porcí musí být alespoň 1.',
+    invalidDay: 'Tento den není v bloku jídla.',
+  },
   dish: {
     addAction: 'Přidat jídlo',
     createTitle: 'Nové jídlo',
