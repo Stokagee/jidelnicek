@@ -14,7 +14,7 @@ impl · `pass` = green.
 | AC-1 | Signup day outside dish block is rejected (BR-2) | EP-6 | `integration/test_ep6_signups.py::TestSignupApi::test_signup_day_outside_block_is_rejected_AC1` | `acceptance/suites/ep6_signups.robot` | xfail (T-6.1) |
 | AC-2 | Portions must be ≥ 1 (BR-4) | EP-6 | `integration/test_ep6_signups.py::TestSignupApi::test_signup_portions_below_one_is_rejected_AC2` (+ DB-level `TestSignupDbConstraints::test_db_rejects_portions_below_one_BR4`, green) | — | xfail (T-6.1) |
 | AC-3 | Re-signup updates existing row, no duplicate (BR-3) | EP-6 | `integration/test_ep6_signups.py::TestSignupApi::test_resignup_same_day_updates_existing_AC3` (+ DB-level `TestSignupDbConstraints::test_db_unique_active_signup_per_dish_user_day_BR3`, green) | — | xfail (T-6.1) |
-| AC-4 | Day summary includes admin's own portions (FR-K1/K2) | EP-7 | `integration/test_ep7_summary.py::test_day_summary_includes_admin_own_portions_AC4` | — | skeleton |
+| AC-4 | Day summary includes admin's own portions (FR-K1/K2) | EP-7 | `integration/test_ep7_summary.py::test_day_summary_sums_active_portions_including_admin_AC4` | — | xfail (T-7.1) |
 | AC-5 | Non-chooser member cannot create a dish (FR-W4) | EP-4 | `integration/test_ep4_week_chooser.py::test_non_chooser_member_cannot_create_dish_AC5` | `acceptance/suites/ep4_week_chooser.robot` | xfail (T-4.1) |
 | AC-6 | Member signs up to a chooser-proposed dish (FR-S3) | EP-6 | `integration/test_ep6_signups.py::TestSignupApi::test_member_signs_up_to_chooser_proposed_dish_AC6` | — | xfail (T-6.1) |
 | AC-7 | Cancel → `signup_cancelled` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_cancel_signup_writes_signup_cancelled_outbox_row_AC7` | — | skeleton |
