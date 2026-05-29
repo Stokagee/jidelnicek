@@ -1,35 +1,36 @@
-// Mini week-grid for picking dish-block days. Days inside the block render as
-// toggle buttons (data-testid="day-YYYY-MM-DD"); days outside the block render
-// as blank spacer cells with no testid, so existing tests that assert absence
-// of out-of-block days still pass.
+// Mini week-grid for picking dish-block days. Starts from startIso (typically
+// max(today, blockStart) so past days are skipped). Days inside the block render
+// as toggle buttons (data-testid="day-YYYY-MM-DD"); days outside the block render
+// as blank spacer cells with no testid, keeping existing absence-tests passing.
 import { cs } from '../i18n/cs'
+import { addDays } from '../utils/dates'
 
-function addDays(iso: string, n: number): string {
+function dayAbbr(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d + n))
-  return dt.toISOString().slice(0, 10)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  return cs.days.short[(dt.getUTCDay() + 6) % 7] // Mon=0 … Sun=6
 }
 
 interface Props {
-  /** Monday of the current week (ISO). */
-  weekStart: string
+  /** First day shown in the grid — use min(today, blockStart) so block is always visible. */
+  startIso: string
   blockStart: string
   blockEnd: string
   selected: string[]
   onToggle: (day: string) => void
 }
 
-export function WeekCalendar({ weekStart, blockStart, blockEnd, selected, onToggle }: Props) {
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+export function WeekCalendar({ startIso, blockStart, blockEnd, selected, onToggle }: Props) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(startIso, i))
 
   return (
     <div className="week-calendar" role="group" aria-label={cs.signup.pickDay}>
-      {cs.days.short.map((label) => (
-        <span key={label} className="wc-header">
-          {label}
+      {days.map((day) => (
+        <span key={`h-${day}`} className="wc-header">
+          {dayAbbr(day)}
         </span>
       ))}
-      {weekDays.map((day) => {
+      {days.map((day) => {
         const inBlock = day >= blockStart && day <= blockEnd
         const isSelected = selected.includes(day)
 

@@ -10,6 +10,7 @@ import { getCurrentWeek } from '../api/weeks'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { WeekCalendar } from '../components/WeekCalendar'
 import { isDayInBlock } from '../domain/block'
+import { addDays } from '../utils/dates'
 import { isValidPortions } from '../domain/portions'
 import { cs } from '../i18n/cs'
 
@@ -43,6 +44,16 @@ export function SignupPage() {
   if (!dish) {
     return <Navigate to="/" replace />
   }
+
+  // Calendar starts from the earlier of today or blockStart so block days are
+  // always visible; past block days are shown but still selectable (BR-2 enforced by API).
+  const todayPrague = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(
+    new Date(),
+  )
+  const calStart = todayPrague < dish.start_date ? todayPrague : dish.start_date
+  // Ensure we show enough days to always cover the full block end.
+  const calEnd = addDays(calStart, 6)
+  const startIso = calEnd >= dish.end_date ? calStart : dish.start_date
 
   function toggleDay(day: string) {
     setSelectedDays((prev) =>
@@ -128,7 +139,7 @@ export function SignupPage() {
         <fieldset className="field">
           <legend>{cs.signup.pickDay}</legend>
           <WeekCalendar
-            weekStart={week!.start_date}
+            startIso={startIso}
             blockStart={dish.start_date}
             blockEnd={dish.end_date}
             selected={selectedDays}
