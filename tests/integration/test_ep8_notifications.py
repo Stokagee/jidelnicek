@@ -49,11 +49,6 @@ from tests.fixtures.factories import DEFAULT_PASSWORD
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
 DIGEST_KEY = "digest_6h"
 
-pytestmark = pytest.mark.xfail(
-    reason="EP-8 notifications (outbox writes + worker) not implemented yet (T-8.2..T-8.5)",
-    strict=True,
-)
-
 
 def _notification_of_type(db_session: Session, ntype: NotificationType) -> Notification | None:
     return db_session.scalars(
@@ -199,6 +194,7 @@ class _RecordingChannel:
             raise RuntimeError("discord webhook down")
 
 
+@pytest.mark.xfail(reason="worker digest not implemented yet (T-8.4)", strict=True)
 def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     db_session: Session,
     frozen_clock,
@@ -221,6 +217,7 @@ def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     assert state.last_run_at > stale
 
 
+@pytest.mark.xfail(reason="worker delivery not implemented yet (T-8.3)", strict=True)
 def test_failed_discord_delivery_is_retried_AC10(
     db_session: Session,
 ) -> None:

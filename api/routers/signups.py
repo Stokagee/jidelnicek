@@ -14,12 +14,28 @@ from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import select
 
 from api.deps import CurrentUser, SessionDep
+from api.outbox import write_notification
 from api.schemas.signup import SignupCreate, SignupResponse, SignupUpdate
-from shared.models import Dish, Signup
+from shared.models import Dish, NotificationType, Signup
 
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
 
 router = APIRouter(tags=["signups"])
+
+
+def _signup_payload(signup: Signup, *, change: str, previous_portions: int | None = None) -> dict:
+    """JSON-serializable outbox payload describing a signup demand change (FR-N7)."""
+    payload = {
+        "signup_id": signup.id,
+        "dish_id": signup.dish_id,
+        "user_id": signup.user_id,
+        "day": signup.day.isoformat(),
+        "portions": signup.portions,
+        "change": change,
+    }
+    if previous_portions is not None:
+        payload["previous_portions"] = previous_portions
+    return payload
 
 
 def _load_owned_signup(session: SessionDep, signup_id: int, user_id: int) -> Signup:
@@ -60,13 +76,34 @@ def create_signup(
         )
     )
     if existing is not None:
+        previous = existing.portions
         existing.portions = body.portions
-        session.commit()
+        # FR-N1: re-signup that changes demand is an increase/decrease event.
+        if body.portions != previous:
+            change = "increased" if body.portions > previous else "decreased"
+            ntype = (
+                NotificationType.SIGNUP_INCREASED
+                if body.portions > previous
+                else NotificationType.SIGNUP_DECREASED
+            )
+            write_notification(
+                session,
+                type=ntype,
+                payload=_signup_payload(existing, change=change, previous_portions=previous),
+            )
+        session.commit()  # FR-N2: outbox row commits in the same transaction.
         response.status_code = status.HTTP_200_OK
         return SignupResponse.model_validate(existing)
 
     signup = Signup(dish_id=dish.id, user_id=user.id, day=body.day, portions=body.portions)
     session.add(signup)
+    session.flush()  # assign signup.id before referencing it in the outbox payload.
+    # FR-N1/FR-N2: a new signup writes a signup_created outbox row in this tx.
+    write_notification(
+        session,
+        type=NotificationType.SIGNUP_CREATED,
+        payload=_signup_payload(signup, change="created"),
+    )
     session.commit()
     return SignupResponse.model_validate(signup)
 
@@ -77,7 +114,24 @@ def update_signup(
 ) -> SignupResponse:
     """FR-S4: the owner changes the portion count (including lowering it)."""
     signup = _load_owned_signup(session, signup_id, user.id)
+    previous = signup.portions
     signup.portions = body.portions  # BR-4 enforced by schema + DB check.
+    # FR-N1/FR-N2: an increase/decrease writes the matching outbox row in this tx.
+    if body.portions != previous:
+        increased = body.portions > previous
+        write_notification(
+            session,
+            type=(
+                NotificationType.SIGNUP_INCREASED
+                if increased
+                else NotificationType.SIGNUP_DECREASED
+            ),
+            payload=_signup_payload(
+                signup,
+                change="increased" if increased else "decreased",
+                previous_portions=previous,
+            ),
+        )
     session.commit()
     return SignupResponse.model_validate(signup)
 
@@ -87,5 +141,11 @@ def delete_signup(signup_id: int, user: CurrentUser, session: SessionDep) -> dic
     """FR-S5 (BR-7): cancellation is a soft-delete (= unregister)."""
     signup = _load_owned_signup(session, signup_id, user.id)
     signup.deleted_at = datetime.now(PRAGUE_TZ)  # BR-7: soft-delete.
+    # FR-N1/FR-N2: cancellation writes a signup_cancelled outbox row in this tx (AC-7).
+    write_notification(
+        session,
+        type=NotificationType.SIGNUP_CANCELLED,
+        payload=_signup_payload(signup, change="cancelled"),
+    )
     session.commit()
     return {"ok": True}

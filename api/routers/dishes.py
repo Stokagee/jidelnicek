@@ -15,8 +15,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from api.deps import CurrentUser, SessionDep
+from api.outbox import write_notification
 from api.schemas.dish import DishCreate, DishResponse, DishUpdate
-from shared.models import Dish, User, Week
+from shared.models import Dish, NotificationType, User, Week
 
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
 
@@ -79,6 +80,20 @@ def create_dish(body: DishCreate, user: CurrentUser, session: SessionDep) -> Dis
         end_date=body.end_date,
     )
     session.add(dish)
+    session.flush()  # assign dish.id before referencing it in the outbox payload.
+    # FR-N1/FR-N2: a newly proposed dish writes a dish_proposed outbox row in this tx.
+    write_notification(
+        session,
+        type=NotificationType.DISH_PROPOSED,
+        payload={
+            "dish_id": dish.id,
+            "week_id": dish.week_id,
+            "name": dish.name,
+            "proposed_by_id": dish.proposed_by_id,
+            "start_date": dish.start_date.isoformat(),
+            "end_date": dish.end_date.isoformat(),
+        },
+    )
     session.commit()
     return DishResponse.model_validate(dish)
 
