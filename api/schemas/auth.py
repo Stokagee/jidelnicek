@@ -27,3 +27,13 @@ class MeResponse(BaseModel):
 
 class ClaimTokenResponse(BaseModel):
     token: str
+
+
+class UserResponse(BaseModel):
+    """Member roster entry for GET /users (unblocks T-4.3 chooser picker, T-7.3 name display)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str | None
+    is_admin: bool
