@@ -1,12 +1,12 @@
 // Cook summary, admin only (§14.5, FR-K1/FR-K2/FR-K3, AC-4). For the selected day
-// of the week it shows per-dish active-portion totals (including the admin's own)
-// from GET /summary. Also offers the create-dish action; the set-chooser action
-// waits on the members endpoint (#53). Non-admins are redirected home.
+// of the week it shows per-dish active-portion totals from GET /summary. Also
+// offers create-dish and set-chooser (FR-W2/FR-W3). Non-admins are redirected home.
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import type { DishPortions, Week } from '../api/types'
+import type { DishPortions, User, Week } from '../api/types'
+import { getUsers } from '../api/auth'
 import { getSummary } from '../api/summary'
-import { getCurrentWeek } from '../api/weeks'
+import { getCurrentWeek, setChooser } from '../api/weeks'
 import { useAuth } from '../auth/useAuth'
 import { daysInBlock } from '../domain/block'
 import { weekRange } from '../dishes/weekRange'
@@ -15,15 +15,22 @@ import { cs } from '../i18n/cs'
 export function CookSummary() {
   const { me } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [rows, setRows] = useState<DishPortions[]>([])
   const [summaryLoading, setSummaryLoading] = useState(false)
+  const [pendingChooserId, setPendingChooserId] = useState<number | ''>('')
+  const [chooserSaved, setChooserSaved] = useState(false)
+  const [chooserError, setChooserError] = useState<string | null>(null)
+  const [chooserSaving, setChooserSaving] = useState(false)
 
   useEffect(() => {
-    getCurrentWeek()
-      .then((w) => {
+    Promise.all([getCurrentWeek(), getUsers().catch((): User[] => [])])
+      .then(([w, us]) => {
         setWeek(w)
+        setUsers(us)
+        setPendingChooserId(w.chooser_id ?? '')
         setSelectedDay(weekRange(w.start_date).min)
       })
       .catch(() => setWeek(null))
@@ -39,6 +46,23 @@ export function CookSummary() {
       .finally(() => setSummaryLoading(false))
   }, [week, selectedDay])
 
+  async function onSaveChooser() {
+    if (!week || pendingChooserId === '') return
+    setChooserSaving(true)
+    setChooserSaved(false)
+    setChooserError(null)
+    try {
+      const updated = await setChooser(week.id, Number(pendingChooserId))
+      setWeek(updated)
+      setPendingChooserId(updated.chooser_id ?? '')
+      setChooserSaved(true)
+    } catch {
+      setChooserError(cs.common.genericError)
+    } finally {
+      setChooserSaving(false)
+    }
+  }
+
   // Admin-only view (FR-K1). me is guaranteed present inside the protected layout.
   if (!me?.is_admin) {
     return <Navigate to="/" replace />
@@ -53,6 +77,7 @@ export function CookSummary() {
 
   const { min, max } = weekRange(week.start_date)
   const days = daysInBlock(min, max)
+  const chooserName = users.find((u) => u.id === week.chooser_id)?.name
 
   return (
     <main className="screen" data-testid="cook-summary">
@@ -61,6 +86,46 @@ export function CookSummary() {
       <Link data-testid="action-create-dish" to="/dishes/new">
         {cs.cookSummary.createDish}
       </Link>
+
+      {/* FR-W2/FR-W3: admin sets/changes the week's chooser (T-4.3). */}
+      <section data-testid="chooser-section">
+        <p data-testid="chooser-current">
+          {cs.cookSummary.chooser.currentLabel}{' '}
+          <strong>
+            {chooserName ??
+              (week.chooser_id != null
+                ? cs.cookSummary.chooser.unknown
+                : cs.cookSummary.chooser.notSet)}
+          </strong>
+        </p>
+        <select
+          data-testid="chooser-select"
+          value={pendingChooserId}
+          onChange={(e) => {
+            setPendingChooserId(e.target.value === '' ? '' : Number(e.target.value))
+            setChooserSaved(false)
+          }}
+        >
+          <option value="" disabled>
+            {cs.cookSummary.chooser.placeholder}
+          </option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name ?? cs.cookSummary.chooser.unknown}
+            </option>
+          ))}
+        </select>
+        <button
+          data-testid="chooser-save"
+          type="button"
+          disabled={pendingChooserId === '' || chooserSaving}
+          onClick={onSaveChooser}
+        >
+          {cs.cookSummary.chooser.saveButton}
+        </button>
+        {chooserSaved && <span data-testid="chooser-saved">{cs.cookSummary.chooser.saved}</span>}
+        {chooserError && <span data-testid="chooser-error">{chooserError}</span>}
+      </section>
 
       <div className="day-grid" role="group" aria-label={cs.cookSummary.dayLabel}>
         {days.map((day) => (
