@@ -19,6 +19,7 @@ from api.schemas.auth import (
     ClaimTokenResponse,
     LoginRequest,
     MeResponse,
+    UserResponse,
 )
 from api.security import make_session
 from shared.config import get_settings
@@ -92,6 +93,16 @@ def logout(response: Response) -> dict[str, bool]:
 def me(user: CurrentUser) -> MeResponse:
     """FR-A6: report who the user is and whether they are admin."""
     return MeResponse(id=user.id, name=user.name, is_admin=user.is_cook)
+
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(_user: CurrentUser, session: SessionDep) -> list[User]:
+    """Members roster: id + name + is_admin for every household member.
+
+    Available to any logged-in user so the FE can display names (T-4.3, T-7.3).
+    Sensitive fields (password_hash, claim_token_hash) are never returned.
+    """
+    return list(session.scalars(select(User).order_by(User.id)).all())
 
 
 @router.post("/admin/users/{user_id}/claim-token", response_model=ClaimTokenResponse)

@@ -9,8 +9,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
 from api.deps import AdminUser, CurrentUser, SessionDep
-from api.schemas.week import SetChooserRequest, WeekResponse
-from shared.models import Dish, Week
+from api.schemas.signup import SignupWithUserName
+from api.schemas.week import DishWithSignupsResponse, SetChooserRequest, WeekResponse
+from shared.models import Dish, Signup, User, Week
 
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
 
@@ -23,14 +24,52 @@ def current_monday() -> date:
     return today - timedelta(days=today.weekday())
 
 
-def _active_dishes(session: SessionDep, week_id: int) -> list[Dish]:
-    return list(
+def _dishes_with_signups(session: SessionDep, week_id: int) -> list[DishWithSignupsResponse]:
+    """FR-K3: dishes for a week, each carrying their active signups with user names."""
+    dishes = list(
         session.scalars(
             select(Dish)
             .where(Dish.week_id == week_id, Dish.deleted_at.is_(None))  # BR-7: active only
             .order_by(Dish.start_date, Dish.id)
         ).all()
     )
+    if not dishes:
+        return []
+
+    dish_ids = [d.id for d in dishes]
+    rows = session.execute(
+        select(Signup, User.name.label("user_name"))
+        .join(User, User.id == Signup.user_id)
+        .where(Signup.dish_id.in_(dish_ids), Signup.deleted_at.is_(None))  # BR-7: active only
+        .order_by(Signup.day, Signup.id)
+    ).all()
+
+    signups_by_dish: dict[int, list[SignupWithUserName]] = {}
+    for signup, user_name in rows:
+        signups_by_dish.setdefault(signup.dish_id, []).append(
+            SignupWithUserName(
+                id=signup.id,
+                user_id=signup.user_id,
+                user_name=user_name,
+                day=signup.day,
+                portions=signup.portions,
+            )
+        )
+
+    return [
+        DishWithSignupsResponse(
+            id=d.id,
+            week_id=d.week_id,
+            name=d.name,
+            proposed_by_id=d.proposed_by_id,
+            cook_id=d.cook_id,
+            slot=d.slot,
+            start_date=d.start_date,
+            end_date=d.end_date,
+            signups=signups_by_dish.get(d.id, []),
+        )
+        for d in dishes
+    ]
 
 
 @router.get("/weeks/current", response_model=WeekResponse)
@@ -43,7 +82,7 @@ def get_current_week(_user: CurrentUser, session: SessionDep) -> WeekResponse:
         id=week.id,
         start_date=week.start_date,
         chooser_id=week.chooser_id,
-        dishes=_active_dishes(session, week.id),
+        dishes=_dishes_with_signups(session, week.id),
     )
 
 
@@ -61,5 +100,5 @@ def set_chooser(
         id=week.id,
         start_date=week.start_date,
         chooser_id=week.chooser_id,
-        dishes=_active_dishes(session, week.id),
+        dishes=_dishes_with_signups(session, week.id),
     )

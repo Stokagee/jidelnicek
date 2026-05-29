@@ -7,6 +7,16 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class SignupWithUserName(BaseModel):
+    """FR-K3: per-dish signup entry for the This-week screen (non-admin members)."""
+
+    id: int
+    user_id: int
+    user_name: str | None
+    day: date
+    portions: int
+
+
 class SignupCreate(BaseModel):
     dish_id: int
     day: date
