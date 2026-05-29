@@ -34,6 +34,10 @@ htmlcov/
 results/
 .robot_out.txt
 .pytest_out.txt
+# Robot Framework default run outputs (when run without --outputdir)
+log.html
+output.xml
+report.html
 
 # --- Node / pnpm / Vite ---
 node_modules/

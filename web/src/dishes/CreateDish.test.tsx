@@ -26,7 +26,7 @@ describe('CreateDish (FR-D1, FR-D2)', () => {
     fireEvent.change(screen.getByTestId('dish-end-date'), { target: { value: '2026-01-07' } })
     await userEvent.click(screen.getByTestId('dish-submit'))
 
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
   })
 
   it('blocks submit and shows a client error when the block end precedes its start (FR-D1)', async () => {
@@ -59,7 +59,7 @@ describe('CreateDish (FR-D1, FR-D2)', () => {
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/dishes/new' })
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
     expect(screen.queryByTestId('dish-name')).not.toBeInTheDocument()
   })
 })

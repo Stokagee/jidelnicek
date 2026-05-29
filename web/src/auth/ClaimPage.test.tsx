@@ -26,7 +26,7 @@ describe('ClaimPage (FR-A3, AC-11)', () => {
     await userEvent.type(screen.getByTestId('claim-password'), 'long-enough-pw')
     await userEvent.click(screen.getByTestId('claim-submit'))
 
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
     expect(localStorage.length).toBe(0)
   })
 
@@ -49,6 +49,6 @@ describe('ClaimPage (FR-A3, AC-11)', () => {
     await userEvent.click(screen.getByTestId('claim-submit'))
 
     expect(await screen.findByTestId('claim-error')).toHaveTextContent(cs.claim.invalidToken)
-    expect(screen.queryByTestId('home')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('this-week')).not.toBeInTheDocument()
   })
 })
