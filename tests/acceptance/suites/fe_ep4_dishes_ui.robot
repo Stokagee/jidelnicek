@@ -1,10 +1,10 @@
 *** Settings ***
 Documentation       EP-4/EP-5 · Dish creation UI (FR-D1/FR-D2/FR-W4) acceptance — AC-5.
-...                 The add-dish action + form ship in T-5.3; until then run with
-...                 `--skiponfailure notready`. Pattern: SEED the week's chooser over
-...                 HTTP (admin), DRIVE the visibility check through the browser.
-...                 Members must be claimed first; pass their creds via -v (the defaults
-...                 match the seed member names in .env.example).
+...                 The add-dish action + form shipped in T-5.3, so this runs for real.
+...                 Pattern: SEED the week's chooser over HTTP (admin), DRIVE the
+...                 visibility check through the browser. Members must be claimed first;
+...                 pass their creds via -v (the defaults match the seed member names in
+...                 .env.example) and admin creds via -v ADMIN_NAME / -v ADMIN_PASSWORD.
 
 Library             Collections
 Resource            ../resources/browser_session.resource
@@ -29,7 +29,7 @@ ${CHOOSER_USER_ID}      ${3}
 Non-Chooser Member Is Not Offered The Add-Dish Action (AC-5)
     [Documentation]    AC-5 (FR-W4/BR-6): a member who is not the week's chooser does not
     ...    see the add-dish action, so they cannot create a dish through the UI.
-    [Tags]    AC-5    FR-W4    notready
+    [Tags]    AC-5    FR-W4
     # SEED over HTTP: admin makes another user the chooser of the current week.
     Login    ${ADMIN_NAME}    ${ADMIN_PASSWORD}
     ${week}=    GET On Session    ${API_SESSION}    /weeks/current    expected_status=200

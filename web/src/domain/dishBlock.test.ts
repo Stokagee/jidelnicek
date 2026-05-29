@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { canPropose, isValidBlock } from './dishBlock'
-import { makeMe, makeWeek } from '../test/fixtures'
+import { canEdit, canPropose, isValidBlock } from './dishBlock'
+import { makeDish, makeMe, makeWeek } from '../test/fixtures'
 
 describe('isValidBlock (FR-D1)', () => {
   it('accepts a single-day block and an ordered range', () => {
@@ -36,5 +36,23 @@ describe('canPropose (BR-6, AC-5)', () => {
   it('rejects when unauthenticated or no week', () => {
     expect(canPropose(null, week)).toBe(false)
     expect(canPropose(makeMe({ id: 3 }), null)).toBe(false)
+  })
+})
+
+describe('canEdit (BR-5)', () => {
+  const dish = makeDish({ id: 5, proposed_by_id: 3 })
+
+  it('allows the proposer and the admin', () => {
+    expect(canEdit(makeMe({ id: 3, is_admin: false }), dish)).toBe(true)
+    expect(canEdit(makeMe({ id: 1, is_admin: true }), dish)).toBe(true)
+  })
+
+  it('rejects another non-admin member', () => {
+    expect(canEdit(makeMe({ id: 2, is_admin: false }), dish)).toBe(false)
+  })
+
+  it('rejects when unauthenticated or no dish', () => {
+    expect(canEdit(null, dish)).toBe(false)
+    expect(canEdit(makeMe({ id: 3 }), null)).toBe(false)
   })
 })
