@@ -24,6 +24,7 @@ export const cs = {
   },
   home: {
     loggedInAs: 'Přihlášen/a jako',
+    placeholder: 'Tento týden — připravujeme.',
     logout: 'Odhlásit se',
   },
   thisWeek: {
