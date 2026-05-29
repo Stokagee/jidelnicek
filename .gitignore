@@ -62,3 +62,6 @@ infra/prometheus/data/
 /
 jidelnicek-docs-v1.md
 CLAUDE.md
+tests/acceptance/suites/log.html
+tests/acceptance/suites/output.xml
+tests/acceptance/suites/report.html

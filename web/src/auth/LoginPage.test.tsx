@@ -25,7 +25,7 @@ describe('LoginPage (FR-A4)', () => {
     await userEvent.click(screen.getByTestId('login-submit'))
 
     expect(await screen.findByTestId('login-error')).toHaveTextContent(cs.login.invalidCredentials)
-    expect(screen.queryByTestId('home')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('this-week')).not.toBeInTheDocument()
   })
 
   it('lands on the protected home and keeps no tokens in localStorage on success (FR-A5)', async () => {
@@ -41,7 +41,7 @@ describe('LoginPage (FR-A4)', () => {
     await userEvent.type(screen.getByTestId('login-password'), 'secret')
     await userEvent.click(screen.getByTestId('login-submit'))
 
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
     expect(localStorage.length).toBe(0)
   })
 })

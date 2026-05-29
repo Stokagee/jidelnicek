@@ -17,13 +17,13 @@ describe('ProtectedRoute', () => {
     )
     renderWithProviders(<AppRoutes />, { route: '/' })
     expect(await screen.findByTestId('login-submit')).toBeInTheDocument()
-    expect(screen.queryByTestId('home')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('this-week')).not.toBeInTheDocument()
   })
 
   it('renders the protected screen for an authenticated visitor (FR-A6)', async () => {
     vi.stubGlobal('fetch', mockFetch([{ path: '/me', body: makeMe({ name: 'alice' }) }]))
     renderWithProviders(<AppRoutes />, { route: '/' })
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
     expect(screen.getByText('alice')).toBeInTheDocument()
   })
 })
