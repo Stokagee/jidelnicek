@@ -64,7 +64,7 @@ def create_dish(body: DishCreate, user: CurrentUser, session: SessionDep) -> Dis
 
     if body.end_date < body.start_date:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,  # Unprocessable Content (literal: stable across Starlette versions).
             detail="end_date must not precede start_date",
         )
 
@@ -96,7 +96,7 @@ def update_dish(
     new_end = data.get("end_date", dish.end_date)
     if new_end < new_start:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,  # Unprocessable Content (literal: stable across Starlette versions).
             detail="end_date must not precede start_date",
         )
     for field, value in data.items():
