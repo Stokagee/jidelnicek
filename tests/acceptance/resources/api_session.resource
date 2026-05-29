@@ -90,3 +90,7 @@ Response Should Match Schema
     [Documentation]    Strict (additionalProperties:false) contract check of a JSON body.
     [Arguments]    ${data}    ${schema_file}
     Validate Data Against Schema    data=${data}    schema_path=${SCHEMA_DIR}/${schema_file}
+
+Login As Admin
+    ${response}=    Login    name=admin    password=change-me-strong-admin-password
+    RETURN    ${response}

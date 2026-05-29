@@ -30,7 +30,7 @@ describe('EditDish (FR-D5, BR-5/BR-7)', () => {
     renderWithProviders(<AppRoutes />, { route: '/dishes/5/edit' })
     expect(await screen.findByTestId('dish-name')).toHaveValue('Svíčková')
     await userEvent.click(screen.getByTestId('dish-delete'))
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
   })
 
   it('redirects a non-editor member away (BR-5)', async () => {
@@ -42,7 +42,7 @@ describe('EditDish (FR-D5, BR-5/BR-7)', () => {
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/dishes/5/edit' })
-    expect(await screen.findByTestId('home')).toBeInTheDocument()
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
     expect(screen.queryByTestId('dish-name')).not.toBeInTheDocument()
   })
 })
