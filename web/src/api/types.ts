@@ -9,6 +9,13 @@ export interface Me {
   is_admin: boolean
 }
 
+/** GET /users — household member roster (T-4.3, T-7.3). */
+export interface User {
+  id: number
+  name: string | null
+  is_admin: boolean
+}
+
 export interface Dish {
   id: number
   week_id: number

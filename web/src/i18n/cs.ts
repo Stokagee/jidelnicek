@@ -42,6 +42,14 @@ export const cs = {
     portionsUnit: '×',
     noSignups: 'Na tento den nikdo není přihlášen.',
     createDish: 'Založit jídlo',
+    chooser: {
+      currentLabel: 'Volitel týdne:',
+      notSet: 'Zatím není nastaven',
+      placeholder: '— vyberte volitele —',
+      saveButton: 'Nastav volitele',
+      saved: 'Volitel nastaven.',
+      unknown: 'Neznámý uživatel',
+    },
   },
   signup: {
     title: 'Přihláška na jídlo',

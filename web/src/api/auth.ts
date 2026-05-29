@@ -2,7 +2,7 @@
 // by the API on claim/login, so these return the identity payload and never touch
 // localStorage. Paths mirror api/routers/auth.py.
 import { apiFetch } from './client'
-import type { Me } from './types'
+import type { Me, User } from './types'
 
 /** FR-A3: set name + password from a single-use claim token; logs the user in. */
 export function claim(token: string, name: string, password: string): Promise<Me> {
@@ -22,4 +22,9 @@ export function logout(): Promise<void> {
 /** FR-A6: who am I + am I admin. Throws ApiError(401) when unauthenticated. */
 export function getMe(): Promise<Me> {
   return apiFetch<Me>('/me')
+}
+
+/** Members roster for any logged-in user (T-4.3 chooser picker, T-7.3 name display). */
+export function getUsers(): Promise<User[]> {
+  return apiFetch<User[]>('/users')
 }
