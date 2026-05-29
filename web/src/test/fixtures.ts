@@ -3,56 +3,16 @@
 // for the network at the single `apiFetch` choke point. The shapes here mirror
 // the live API (api/schemas/*.py); the real api/ wrappers in T-3.4+ refine them.
 
+import type { Dish, Me, Signup, Week } from '../api/types'
+
+export type { Dish, DishPortions, Me, Signup, Week } from '../api/types'
+
 // A fixed reference instant: Monday 2026-01-05, 12:00 Europe/Prague — identical
 // to the backend's tests/fixtures/time.py::FROZEN_NOW so FE and BE tests agree
 // on "now" (BR-9). Use with vi.setSystemTime(FROZEN_NOW_PRAGUE).
 export const FROZEN_NOW_PRAGUE = new Date('2026-01-05T12:00:00+01:00')
 
-// --- §9 response shapes (mirrors api/schemas/*.py) ---------------------------
-
-/** GET /me — note the field is `is_admin`, not `is_cook` (api/schemas/auth.py). */
-export interface Me {
-  id: number
-  name: string | null
-  is_admin: boolean
-}
-
-export interface Dish {
-  id: number
-  week_id: number
-  name: string
-  proposed_by_id: number
-  // cook_id / slot are forward-compat (§11): always admin / lunch in V1. Do not
-  // render UI for them; builders default them so payloads are realistic.
-  cook_id: number
-  slot: string
-  start_date: string // ISO date (YYYY-MM-DD)
-  end_date: string
-}
-
-export interface Week {
-  id: number
-  start_date: string
-  chooser_id: number | null
-  dishes: Dish[]
-}
-
-export interface Signup {
-  id: number
-  dish_id: number
-  user_id: number
-  day: string
-  portions: number
-}
-
-/** One row of the cook summary (api/schemas/summary.py::DishPortions). */
-export interface DishPortions {
-  dish_id: number
-  name: string
-  portions: number
-}
-
-// --- builders ----------------------------------------------------------------
+// --- builders (payloads mirror api/schemas/*.py via src/api/types) -----------
 
 let seq = 0
 const nextId = () => (seq += 1)
