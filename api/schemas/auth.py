@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
 class ClaimRequest(BaseModel):
@@ -36,4 +36,5 @@ class UserResponse(BaseModel):
 
     id: int
     name: str | None
-    is_admin: bool
+    # ORM column is `is_cook`; JSON key exposed to clients is `is_admin`.
+    is_admin: bool = Field(validation_alias=AliasChoices('is_admin', 'is_cook'))
