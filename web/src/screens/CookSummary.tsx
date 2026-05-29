@@ -2,17 +2,19 @@
 // of the week it shows per-dish active-portion totals from GET /summary. Also
 // offers create-dish and set-chooser (FR-W2/FR-W3). Non-admins are redirected home.
 import { useEffect, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import type { DishPortions, User, Week } from '../api/types'
 import { getUsers } from '../api/auth'
 import { getSummary } from '../api/summary'
 import { getCurrentWeek, setChooser } from '../api/weeks'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../auth/useAuth'
 import { daysInBlock } from '../domain/block'
 import { weekRange } from '../dishes/weekRange'
 import { cs } from '../i18n/cs'
 
 export function CookSummary() {
+  const navigate = useNavigate()
   const { me } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
   const [users, setUsers] = useState<User[]>([])
@@ -81,6 +83,13 @@ export function CookSummary() {
 
   return (
     <main className="screen" data-testid="cook-summary">
+      <div className="screen-header">
+        <button type="button" className="btn-back" onClick={() => navigate('/')}>
+          {cs.common.back}
+        </button>
+        <ThemeToggle />
+      </div>
+
       <h1>{cs.cookSummary.title}</h1>
 
       <Link data-testid="action-create-dish" to="/dishes/new">

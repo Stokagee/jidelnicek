@@ -62,11 +62,13 @@ export function CreateDish() {
   return (
     <DishForm
       title={cs.dish.createTitle}
+      weekStart={week.start_date}
       minDate={min}
       maxDate={max}
       error={error}
       submitting={submitting}
       onSubmit={onSubmit}
+      onBack={() => navigate(-1)}
     />
   )
 }

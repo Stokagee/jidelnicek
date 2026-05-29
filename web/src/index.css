@@ -22,7 +22,7 @@
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 /* ─── reset / base ─────────────────────────────────────────────────────────── */
@@ -442,4 +442,176 @@ button.danger:hover:not(:disabled) {
   padding: 56px 16px;
   text-align: center;
   color: var(--c-text-muted);
+}
+
+/* ─── header actions (theme toggle + logout) ───────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  background: var(--c-surface) !important;
+  border: 1px solid var(--c-border) !important;
+  color: var(--c-text) !important;
+  font-size: 0.8125rem !important;
+  padding: 6px 12px !important;
+  min-height: 34px !important;
+  border-radius: var(--radius-pill) !important;
+}
+
+.theme-toggle:hover {
+  border-color: var(--c-primary) !important;
+  color: var(--c-primary) !important;
+}
+
+/* ─── back button ──────────────────────────────────────────────────────────── */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  min-height: 36px;
+  font-size: 0.875rem;
+  background: transparent;
+  color: var(--c-text-muted);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.btn-back:hover {
+  background: var(--c-bg);
+  color: var(--c-text);
+  border-color: var(--c-text-muted);
+}
+
+/* ─── screen reader only (hides visually, keeps accessible + testable) ─────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── week calendar ────────────────────────────────────────────────────────── */
+.week-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.wc-header {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--c-text-muted);
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wc-day {
+  aspect-ratio: 1;
+  min-height: unset;
+  padding: 0;
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-text);
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.wc-day:hover:not(:disabled) {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.wc-day.selected,
+.wc-day[aria-pressed='true'] {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-primary-text);
+}
+
+.wc-day--out {
+  background: transparent;
+  border: none;
+  pointer-events: none;
+}
+
+/* BlockPicker range state */
+.bp-selected {
+  background: var(--c-primary) !important;
+  border-color: var(--c-primary) !important;
+  color: var(--c-primary-text) !important;
+}
+
+.bp-range {
+  background: rgb(79 70 229 / 0.12) !important;
+  border-color: var(--c-primary) !important;
+  color: var(--c-primary) !important;
+}
+
+.block-picker-summary {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+}
+
+.block-picker {
+  margin-bottom: 4px;
+}
+
+/* ─── dark mode ────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: #0f0f11;
+    --c-surface: #1c1c1f;
+    --c-border: #2e2e33;
+    --c-border-focus: #818cf8;
+    --c-primary: #818cf8;
+    --c-primary-hover: #6366f1;
+    --c-primary-text: #ffffff;
+    --c-danger: #f87171;
+    --c-danger-hover: #ef4444;
+    --c-text: #f4f4f5;
+    --c-text-muted: #a1a1aa;
+    --c-error: #f87171;
+    --c-success: #4ade80;
+    color-scheme: dark;
+  }
+}
+
+[data-theme='dark'] {
+  --c-bg: #0f0f11;
+  --c-surface: #1c1c1f;
+  --c-border: #2e2e33;
+  --c-border-focus: #818cf8;
+  --c-primary: #818cf8;
+  --c-primary-hover: #6366f1;
+  --c-primary-text: #ffffff;
+  --c-danger: #f87171;
+  --c-danger-hover: #ef4444;
+  --c-text: #f4f4f5;
+  --c-text-muted: #a1a1aa;
+  --c-error: #f87171;
+  --c-success: #4ade80;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
 }

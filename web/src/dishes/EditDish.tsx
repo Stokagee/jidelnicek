@@ -80,6 +80,7 @@ export function EditDish() {
     <DishForm
       title={cs.dish.editTitle}
       initial={{ name: dish.name, start_date: dish.start_date, end_date: dish.end_date }}
+      weekStart={week!.start_date}
       minDate={min}
       maxDate={max}
       error={error}
@@ -87,6 +88,7 @@ export function EditDish() {
       onSubmit={onSubmit}
       onDelete={onDelete}
       deleting={deleting}
+      onBack={() => navigate(-1)}
     />
   )
 }

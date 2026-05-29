@@ -1,27 +1,28 @@
 // Signup screen (§14.4, FR-S1/FR-S2/FR-S4/FR-S5). Reached at /dishes/:id/signup
-// from the dish in "This week". Pick a day inside the dish block + portions and
-// sign up; the just-created signup can then be cancelled in-session (there is no
-// GET to rehydrate existing signups). data-testid hooks match the Robot
-// page-object (dish_signup_page.resource).
+// from the dish in "This week". Pick one or more days inside the dish block +
+// portions and sign up; the in-session signups can then all be cancelled at once.
 import { useEffect, useState, type FormEvent } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import type { Signup, Week } from '../api/types'
 import { ApiError } from '../api/client'
 import { cancelSignup, createSignup } from '../api/signups'
 import { getCurrentWeek } from '../api/weeks'
-import { daysInBlock, isDayInBlock } from '../domain/block'
+import { ThemeToggle } from '../components/ThemeToggle'
+import { WeekCalendar } from '../components/WeekCalendar'
+import { isDayInBlock } from '../domain/block'
 import { isValidPortions } from '../domain/portions'
 import { cs } from '../i18n/cs'
 
 export function SignupPage() {
   const { dishId } = useParams<{ dishId: string }>()
+  const navigate = useNavigate()
   const [week, setWeek] = useState<Week | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [portions, setPortions] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [signup, setSignup] = useState<Signup | null>(null)
+  const [signups, setSignups] = useState<Signup[]>([])
 
   useEffect(() => {
     getCurrentWeek()
@@ -43,16 +44,20 @@ export function SignupPage() {
     return <Navigate to="/" replace />
   }
 
-  const days = daysInBlock(dish.start_date, dish.end_date)
+  function toggleDay(day: string) {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    )
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
-    if (!selectedDay) {
+    if (selectedDays.length === 0) {
       setError(cs.signup.noDay)
       return
     }
-    if (!isDayInBlock(selectedDay, dish!.start_date, dish!.end_date)) {
+    if (selectedDays.some((d) => !isDayInBlock(d, dish!.start_date, dish!.end_date))) {
       setError(cs.signup.invalidDay)
       return
     }
@@ -62,7 +67,21 @@ export function SignupPage() {
     }
     setSubmitting(true)
     try {
-      setSignup(await createSignup(dish!.id, selectedDay, portions))
+      const results = await Promise.allSettled(
+        selectedDays.map((day) => createSignup(dish!.id, day, portions)),
+      )
+      const created = results
+        .filter((r): r is PromiseFulfilledResult<Signup> => r.status === 'fulfilled')
+        .map((r) => r.value)
+      setSignups(created)
+      if (created.length < selectedDays.length) {
+        const failed = selectedDays.length - created.length
+        setError(
+          failed === selectedDays.length
+            ? cs.common.genericError
+            : `${created.length} z ${selectedDays.length} přihlášek proběhlo, ${failed} selhalo.`,
+        )
+      }
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 422
@@ -75,12 +94,13 @@ export function SignupPage() {
   }
 
   async function onCancel() {
-    if (!signup) return
+    if (signups.length === 0) return
     setSubmitting(true)
     setError(null)
     try {
-      await cancelSignup(signup.id)
-      setSignup(null)
+      await Promise.all(signups.map((s) => cancelSignup(s.id)))
+      setSignups([])
+      setSelectedDays([])
     } catch {
       setError(cs.common.genericError)
     } finally {
@@ -88,28 +108,34 @@ export function SignupPage() {
     }
   }
 
+  const n = selectedDays.length
+  const submitLabel =
+    n > 1 ? `${cs.signup.submit} (${n} ${n === 1 ? 'den' : 'dní'})` : cs.signup.submit
+
   return (
     <main className="screen" data-testid="signup">
+      <div className="screen-header">
+        <button type="button" className="btn-back" onClick={() => navigate(-1)}>
+          {cs.common.back}
+        </button>
+        <ThemeToggle />
+      </div>
+
       <h1>{cs.signup.title}</h1>
       <h2>{dish.name}</h2>
+
       <form onSubmit={onSubmit} noValidate>
         <fieldset className="field">
           <legend>{cs.signup.pickDay}</legend>
-          <div className="day-grid">
-            {days.map((day) => (
-              <button
-                key={day}
-                type="button"
-                data-testid={`day-${day}`}
-                aria-pressed={selectedDay === day}
-                className={selectedDay === day ? 'day selected' : 'day'}
-                onClick={() => setSelectedDay(day)}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
+          <WeekCalendar
+            weekStart={week!.start_date}
+            blockStart={dish.start_date}
+            blockEnd={dish.end_date}
+            selected={selectedDays}
+            onToggle={toggleDay}
+          />
         </fieldset>
+
         <label className="field">
           <span>{cs.signup.portionsLabel}</span>
           <input
@@ -120,17 +146,21 @@ export function SignupPage() {
             onChange={(e) => setPortions(Number(e.target.value))}
           />
         </label>
+
         {error && (
           <p data-testid="signup-error" className="form-error" role="alert">
             {error}
           </p>
         )}
-        {signup && <p data-testid="signup-confirmed">{cs.signup.signedUp}</p>}
+        {signups.length > 0 && (
+          <p data-testid="signup-confirmed">{cs.signup.signedUp}</p>
+        )}
         <button data-testid="signup-submit" type="submit" disabled={submitting}>
-          {submitting ? cs.common.loading : cs.signup.submit}
+          {submitting ? cs.common.loading : submitLabel}
         </button>
       </form>
-      {signup && (
+
+      {signups.length > 0 && (
         <button
           data-testid="signup-cancel"
           type="button"
@@ -138,7 +168,7 @@ export function SignupPage() {
           onClick={onCancel}
           disabled={submitting}
         >
-          {cs.signup.cancel}
+          {signups.length === 1 ? cs.signup.cancel : cs.signup.cancelAll}
         </button>
       )}
     </main>
