@@ -100,12 +100,7 @@ class TestSignupDbConstraints:
 
 
 class TestSignupApi:
-    """Application behaviour through HTTP — xfail until T-6.2 (+ EP-3 auth)."""
-
-    pytestmark = pytest.mark.xfail(
-        reason="EP-6 signup endpoints not implemented yet (T-6.2)",
-        strict=True,
-    )
+    """Application behaviour through HTTP."""
 
     @staticmethod
     def _payload(dish: Dish, day=None, portions: int = 1) -> dict:
