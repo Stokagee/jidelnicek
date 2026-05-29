@@ -15,18 +15,12 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-import pytest
 from sqlalchemy.orm import Session
 
 from shared.models import Dish, Signup, User, Week
 from tests.fixtures.factories import DEFAULT_PASSWORD
 
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
-
-pytestmark = pytest.mark.xfail(
-    reason="EP-7 summary endpoint not implemented yet (T-7.2)",
-    strict=True,
-)
 
 
 def _portions_for(response, dish_id: int) -> int:
