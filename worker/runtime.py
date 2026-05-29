@@ -6,9 +6,8 @@ paths, one outcome (FR-N2):
 - `sweep_pending()` — cron every `sweep_interval_seconds`, the durable fallback
   that also catches enqueue failures and backend restarts.
 
-The channel is resolved lazily: `shared.channels.build_default_channel()` when
-available (Discord in V1, T-8.5), otherwise a stdout logging channel so the
-worker is runnable end-to-end before the Discord channel lands.
+The channel comes from `shared.channels.build_default_channel()` — Discord when a
+webhook is configured, otherwise a stdout logging channel (FR-N5).
 """
 
 from __future__ import annotations
@@ -20,36 +19,19 @@ from typing import ClassVar
 from arq import cron
 from arq.connections import RedisSettings
 
+from shared.channels import build_default_channel
 from shared.db import get_sessionmaker
 from worker.config import get_worker_config
 from worker.delivery import deliver_pending
+from worker.digest import run_due_digest
 
 log = logging.getLogger("worker.runtime")
-
-
-class _LoggingChannel:
-    """Fallback channel: logs instead of posting. Replaced by DiscordChannel (T-8.5)."""
-
-    name = "logging"
-
-    def send(self, notification) -> None:
-        log.info(
-            "notification %s (%s): %s", notification.id, notification.type, notification.payload
-        )
-
-
-def _resolve_channel():
-    try:
-        from shared.channels import build_default_channel
-    except ImportError:
-        return _LoggingChannel()
-    return build_default_channel()
 
 
 async def startup(ctx: dict) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     ctx["sessionmaker"] = get_sessionmaker()
-    ctx["channel"] = _resolve_channel()
+    ctx["channel"] = build_default_channel()
     log.info("worker started (channel=%s)", getattr(ctx["channel"], "name", "?"))
 
 
@@ -70,6 +52,16 @@ async def sweep_pending(ctx: dict) -> int:
         return deliver_pending(session, ctx["channel"])
 
 
+async def send_digest_if_due(ctx: dict) -> bool:
+    """Fire the 6h digest if its slot is overdue (FR-N4 catch-up)."""
+    with ctx["sessionmaker"]() as session:
+        return run_due_digest(
+            session,
+            ctx["channel"],
+            interval_hours=get_worker_config().digest_interval_hours,
+        )
+
+
 def _sweep_seconds() -> set[int]:
     step = max(1, min(60, get_worker_config().sweep_interval_seconds))
     return set(range(0, 60, step))
@@ -79,7 +71,11 @@ class WorkerSettings:
     """arq entry point: `arq worker.runtime.WorkerSettings`."""
 
     functions: ClassVar[list] = [deliver_one]
-    cron_jobs: ClassVar[list] = [cron(sweep_pending, second=_sweep_seconds(), run_at_startup=True)]
+    cron_jobs: ClassVar[list] = [
+        cron(sweep_pending, second=_sweep_seconds(), run_at_startup=True),
+        # Check the digest slot every 5 min and on startup (catch-up, FR-N4).
+        cron(send_digest_if_due, minute=set(range(0, 60, 5)), run_at_startup=True),
+    ]
     on_startup: ClassVar[Callable] = startup
     on_shutdown: ClassVar[Callable] = shutdown
     redis_settings = RedisSettings.from_dsn(get_worker_config().redis_url)

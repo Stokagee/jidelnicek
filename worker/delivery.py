@@ -12,6 +12,7 @@ On channel failure a row is left for a later sweep with `attempts` incremented a
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -19,6 +20,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from shared.models import Notification, NotificationStatus
+from worker.backoff import should_retry
+
+log = logging.getLogger("worker.delivery")
 
 PRAGUE_TZ = ZoneInfo("Europe/Prague")
 
@@ -38,6 +42,17 @@ def deliver_pending(session: Session, channel, *, limit: int = 100) -> int:
 
     delivered = 0
     for notification in rows:
+        # FR-N6: dead-letter rows that have exhausted their retries.
+        if notification.status == NotificationStatus.FAILED and not should_retry(
+            notification.attempts
+        ):
+            log.critical(
+                "notification %s dead-lettered after %s attempts: %s",
+                notification.id,
+                notification.attempts,
+                notification.last_error,
+            )
+            continue
         try:
             channel.send(notification)
         except Exception as exc:  # any channel error is retryable (FR-N6)

@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     session_cookie_name: str = "jidelnicek_session"
     # Cookie lifetime in seconds (default 14 days).
     session_max_age: int = 14 * 24 * 3600
+    # FR-N5: single Discord webhook for the cook's alerts + digest. Empty = log only.
+    discord_webhook_url: str = ""
 
 
 @lru_cache
