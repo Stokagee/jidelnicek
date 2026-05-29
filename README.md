@@ -29,9 +29,7 @@ The locked product spec (single source of truth) lives in [`jidelnicek-docs-v1.m
 ```
 .
 ├── jidelnicek-docs-v1.md     # locked spec (CZ)
-├── CLAUDE.md                  # session operating manual
 ├── docs/glossary.md           # CZ → EN authoritative mapping
-├── .claude/skills/            # per-area playbooks
 ├── pyproject.toml             # uv workspace root
 ├── api/                       # FastAPI service
 ├── worker/                    # arq notifications worker
@@ -178,7 +176,35 @@ pnpm lint              # ESLint
 pnpm format            # Prettier write
 pnpm format:check      # Prettier check
 pnpm build             # production build
+pnpm test              # vitest (unit/component) — pinned to Europe/Prague (BR-9)
+pnpm test:watch        # vitest watch mode
+pnpm test:cov          # vitest with v8 coverage
+pnpm typecheck         # tsc against tests + src
 ```
+
+Unit/component tests use **vitest + React Testing Library** (jsdom), co-located as
+`*.test.ts(x)` next to the source. Shared harness (frozen Prague clock, builders, a
+`mockFetch` that enforces the cookies-only rule) lives in `web/src/test/`.
+
+**Frontend acceptance (Robot Framework + Browser Library).** The `fe_*` suites under
+`tests/acceptance/suites/` drive the real UI on a 360px mobile context: they **seed over
+HTTP** (`resources/api_session.resource`) and **drive over the browser**
+(`resources/browser_session.resource` + `resources/pages/*.resource`). One-time setup
+(downloads the Playwright browsers):
+
+```sh
+uv sync --extra dev          # installs robotframework-browser
+uv run rfbrowser init        # downloads the browser binaries (one-time)
+```
+
+Then, with **both** api (:8000) and web (:5173) running:
+
+```sh
+uv run robot --skiponfailure notready --outputdir results/robot tests/acceptance/suites/fe_*.robot
+```
+
+Like the API suites, screen suites are tagged `notready` until the owning `T-x.3` ships
+(`${WEB_BASE_URL}` defaults to `http://127.0.0.1:5173`).
 
 ### Stack control
 

@@ -32,6 +32,9 @@ dev = [
     "pytest-cov>=5.0",
     "robotframework>=7.1",
     "robotframework-requests>=0.9",
+    # Browser Library (Playwright) for the frontend acceptance layer (fe_* suites).
+    # Needs a one-time `rfbrowser init` to download the browser binaries.
+    "robotframework-browser>=18.9",
     "freezegun>=1.5",
     "python-dotenv>=1.0",
     # Schema-driven test-data generation + strict response validation for the
