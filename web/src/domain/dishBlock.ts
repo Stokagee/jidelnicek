@@ -1,6 +1,6 @@
 // Pure client-side rules for dishes, mirroring the server (api/routers/dishes.py)
 // so the form can validate before submitting; the server stays the source of truth.
-import type { Me, Week } from '../api/types'
+import type { Dish, Me, Week } from '../api/types'
 
 /**
  * FR-D1: a dish day-block is valid when its end is not before its start. Mirrors
@@ -20,4 +20,13 @@ export function canPropose(me: Me | null, week: Pick<Week, 'chooser_id'> | null)
   if (!me) return false
   if (me.is_admin) return true
   return week != null && week.chooser_id === me.id
+}
+
+/**
+ * BR-5: only the dish's proposer or the admin may edit/delete it. Drives whether
+ * the edit form and delete action are offered; the server enforces it (403).
+ */
+export function canEdit(me: Me | null, dish: Pick<Dish, 'proposed_by_id'> | null): boolean {
+  if (!me || !dish) return false
+  return me.is_admin || dish.proposed_by_id === me.id
 }

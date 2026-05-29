@@ -3,6 +3,8 @@ import { AuthProvider } from './auth/AuthProvider'
 import { ClaimPage } from './auth/ClaimPage'
 import { LoginPage } from './auth/LoginPage'
 import { ProtectedRoute } from './auth/ProtectedRoute'
+import { CreateDish } from './dishes/CreateDish'
+import { EditDish } from './dishes/EditDish'
 import { Home } from './screens/Home'
 
 // Route tree (router-agnostic so tests can mount it in a MemoryRouter). Public:
@@ -15,6 +17,8 @@ export function AppRoutes() {
       <Route path="/claim/:token" element={<ClaimPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
+        <Route path="/dishes/new" element={<CreateDish />} />
+        <Route path="/dishes/:dishId/edit" element={<EditDish />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
