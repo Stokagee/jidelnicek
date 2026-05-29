@@ -1,8 +1,6 @@
 """FastAPI application entry point.
 
-T-0.1 ships a minimal app with a single `/healthz` route so the api service
-can boot under docker compose. Real routers (auth, weeks, dishes, signups,
-summary, metrics) are added per their respective epics.
+Routers are added per epic. EP-3 wires the auth/account endpoints (FR-A).
 """
 
 from __future__ import annotations
@@ -11,12 +9,21 @@ import os
 
 from fastapi import FastAPI
 
-app = FastAPI(title="jidelnicek api", version="0.1.0")
+from api.routers import auth
 
 
-@app.get("/healthz")
-def healthz() -> dict[str, str]:
-    return {"status": "ok"}
+def create_app() -> FastAPI:
+    app = FastAPI(title="jidelnicek api", version="0.1.0")
+
+    @app.get("/healthz")
+    def healthz() -> dict[str, str]:
+        return {"status": "ok"}
+
+    app.include_router(auth.router)
+    return app
+
+
+app = create_app()
 
 
 def cli() -> None:

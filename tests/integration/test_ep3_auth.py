@@ -19,17 +19,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-import pytest
 from argon2 import PasswordHasher
 from sqlalchemy.orm import Session
 
 from shared.models import User
 from tests.fixtures.factories import DEFAULT_PASSWORD
-
-pytestmark = pytest.mark.xfail(
-    reason="EP-3 auth endpoints not implemented yet (T-3.2)",
-    strict=True,
-)
 
 
 def test_claim_sets_name_password_then_token_reuse_fails_AC11(
