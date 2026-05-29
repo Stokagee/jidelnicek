@@ -51,6 +51,15 @@ Get Me
     ${response}=    GET On Session    ${API_SESSION}    /me    expected_status=any
     RETURN    ${response}
 
+Generate Claim Token
+    [Documentation]    POST /admin/users/{id}/claim-token — admin mints a single-use
+    ...    claim token for a member (FR-A2). Requires the session to be logged in as
+    ...    admin first. Used to SEED the AC-11 UI flow before driving the browser.
+    [Arguments]    ${user_id}
+    ${response}=    POST On Session    ${API_SESSION}    /admin/users/${user_id}/claim-token
+    ...    expected_status=any
+    RETURN    ${response}
+
 Generate Payload From Schema
     [Documentation]    Realistic happy-path request body via TalosForge. Boundary /
     ...    negative AC values are set explicitly by the test, not generated.
