@@ -30,7 +30,6 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -194,7 +193,6 @@ class _RecordingChannel:
             raise RuntimeError("discord webhook down")
 
 
-@pytest.mark.xfail(reason="worker digest not implemented yet (T-8.4)", strict=True)
 def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     db_session: Session,
     frozen_clock,
