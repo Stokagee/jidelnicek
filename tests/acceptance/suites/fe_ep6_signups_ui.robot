@@ -10,6 +10,7 @@ Library             Collections
 Resource            ../resources/browser_session.resource
 Resource            ../resources/pages/login_page.resource
 Resource            ../resources/pages/dish_signup_page.resource
+Resource            ../resources/api_session.resource
 
 Suite Setup         Seed A Dish With A Known Block
 Suite Teardown      Run Keywords    Close App    AND    Delete API Sessions
@@ -17,13 +18,14 @@ Suite Teardown      Run Keywords    Close App    AND    Delete API Sessions
 
 *** Variables ***
 ${ADMIN_NAME}           admin
-${ADMIN_PASSWORD}       change-me
+${ADMIN_PASSWORD}       change-me-strong-admin-password
 ${MEMBER_NAME}          Kateřina
 ${MEMBER_PASSWORD}      katka123
 ${BLOCK_START}          2026-01-05
 ${BLOCK_MID}            2026-01-06
 ${BLOCK_END}            2026-01-07
 ${OUT_OF_BLOCK}         2026-01-09
+${DISH_ID}              None
 
 
 *** Keywords ***

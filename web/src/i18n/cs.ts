@@ -23,10 +23,24 @@ export const cs = {
     invalidCredentials: 'Nesprávné jméno nebo heslo.',
   },
   home: {
-    // Placeholder landing until the real "This week" screen lands (T-7.3).
     loggedInAs: 'Přihlášen/a jako',
-    placeholder: 'Tento týden — připravujeme.',
     logout: 'Odhlásit se',
+  },
+  thisWeek: {
+    title: 'Tento týden',
+    empty: 'Tento týden zatím nejsou žádná jídla.',
+    signup: 'Přihlásit se',
+    edit: 'Upravit',
+    cookSummaryLink: 'Souhrn kuchaře',
+    // Member-facing "who is signed up / portion totals" arrives once the BE adds
+    // those endpoints (#53); until then this screen lists dishes and links to signup.
+  },
+  cookSummary: {
+    title: 'Souhrn kuchaře',
+    dayLabel: 'Den:',
+    portionsUnit: '×',
+    noSignups: 'Na tento den nikdo není přihlášen.',
+    createDish: 'Založit jídlo',
   },
   signup: {
     title: 'Přihláška na jídlo',
