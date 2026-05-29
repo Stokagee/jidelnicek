@@ -17,10 +17,10 @@ impl · `pass` = green.
 | AC-4 | Day summary includes admin's own portions (FR-K1/K2) | EP-7 | `integration/test_ep7_summary.py::test_day_summary_sums_active_portions_including_admin_AC4` | — | xfail (T-7.1) |
 | AC-5 | Non-chooser member cannot create a dish (FR-W4) | EP-4 | `integration/test_ep4_week_chooser.py::test_non_chooser_member_cannot_create_dish_AC5` | `acceptance/suites/ep4_week_chooser.robot` | xfail (T-4.1) |
 | AC-6 | Member signs up to a chooser-proposed dish (FR-S3) | EP-6 | `integration/test_ep6_signups.py::TestSignupApi::test_member_signs_up_to_chooser_proposed_dish_AC6` | — | xfail (T-6.1) |
-| AC-7 | Cancel → `signup_cancelled` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_cancel_signup_writes_signup_cancelled_outbox_row_AC7` | — | skeleton |
-| AC-8 | Increase portions → `signup_increased` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_increase_portions_writes_signup_increased_outbox_row_AC8` | — | skeleton |
-| AC-9 | Worker catch-up sends missed digest on startup (FR-N4) | EP-8 | `integration/test_ep8_notifications.py::test_worker_catch_up_sends_missed_digest_on_startup_AC9` | — | skeleton |
-| AC-10 | Failed Discord delivery is retried (FR-N6) | EP-8 | `integration/test_ep8_notifications.py::test_failed_discord_delivery_is_retried_AC10` | — | skeleton |
+| AC-7 | Cancel → `signup_cancelled` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_cancel_signup_writes_signup_cancelled_outbox_AC7` | — | xfail (T-8.1) |
+| AC-8 | Increase portions → `signup_increased` outbox row, same txn (FR-N1/N2) | EP-8 | `integration/test_ep8_notifications.py::test_increase_portions_writes_signup_increased_outbox_AC8` | — | xfail (T-8.1) |
+| AC-9 | Worker catch-up sends missed digest on startup (FR-N4) | EP-8 | `integration/test_ep8_notifications.py::test_worker_catch_up_sends_missed_digest_on_startup_AC9` | — | xfail (T-8.1) |
+| AC-10 | Failed Discord delivery is retried (FR-N6) | EP-8 | `integration/test_ep8_notifications.py::test_failed_discord_delivery_is_retried_AC10` | — | xfail (T-8.1) |
 | AC-11 | Valid claim token activates account, not reusable (FR-A3) | EP-3 | `integration/test_ep3_auth.py::test_claim_sets_name_password_then_token_reuse_fails_AC11` | `acceptance/suites/ep3_auth.robot` | xfail (T-3.1) |
 | AC-12 | Non-creator/non-admin cannot delete a dish (FR-D5, BR-5) | EP-5 | `integration/test_ep5_dishes.py::test_non_creator_non_admin_member_cannot_delete_dish_AC12` | — | xfail (T-5.1) |
 
