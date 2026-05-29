@@ -1,66 +1,445 @@
+/* ─── design tokens ───────────────────────────────────────────────────────── */
 :root {
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  --c-bg: #f4f4f6;
+  --c-surface: #ffffff;
+  --c-border: #e4e4e7;
+  --c-border-focus: #4f46e5;
+  --c-primary: #4f46e5;
+  --c-primary-hover: #4338ca;
+  --c-primary-text: #ffffff;
+  --c-danger: #dc2626;
+  --c-danger-hover: #b91c1c;
+  --c-text: #18181b;
+  --c-text-muted: #71717a;
+  --c-error: #b00020;
+  --c-success: #15803d;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+/* ─── reset / base ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
 }
 
-.placeholder {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 24px 16px;
+h1,
+h2 {
+  margin: 0 0 20px;
+  line-height: 1.25;
 }
 
-/* Mobile-first: usable on a 360px phone, tap targets >= 44px (frontend skill). */
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.125rem;
+  color: var(--c-text-muted);
+  font-weight: 500;
+}
+
+/* ─── layout containers ────────────────────────────────────────────────────── */
 .auth-screen,
 .screen {
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 24px 16px;
-  box-sizing: border-box;
+  padding: 24px 16px 48px;
 }
 
+.auth-screen {
+  padding-top: 56px;
+}
+
+/* ─── screen header (name + logout) ───────────────────────────────────────── */
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 14px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.screen-header p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+}
+
+/* ─── buttons (base = primary filled) ─────────────────────────────────────── */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+  line-height: 1;
+}
+
+button:hover:not(:disabled) {
+  background: var(--c-primary-hover);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ghost — logout, day-pills */
+button.ghost,
+.screen-header button {
+  background: transparent;
+  color: var(--c-text-muted);
+  border-color: var(--c-border);
+  font-size: 0.875rem;
+  padding: 8px 14px;
+  min-height: 36px;
+}
+
+button.ghost:hover:not(:disabled),
+.screen-header button:hover:not(:disabled) {
+  background: var(--c-bg);
+  border-color: var(--c-text-muted);
+  color: var(--c-text);
+}
+
+/* danger — delete dish, cancel signup */
+button.danger {
+  background: transparent;
+  color: var(--c-danger);
+  border-color: var(--c-danger);
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--c-danger);
+  color: #fff;
+}
+
+/* ─── links styled as buttons ─────────────────────────────────────────────── */
+.actions a,
+.dish-list a,
+.screen > a[data-testid] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background-color 0.15s;
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+  line-height: 1;
+}
+
+.actions a:hover,
+.screen > a[data-testid]:hover {
+  background: var(--c-primary-hover);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* ─── form fields ──────────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > span {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--c-border-focus);
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 0.12);
+}
+
+/* form container card */
+.screen form,
 .auth-screen form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
 }
 
-.field {
+.screen fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.screen fieldset legend {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+/* ─── dish list ────────────────────────────────────────────────────────────── */
+.dish-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.field input {
+.dish-list li {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.dish-name {
+  font-weight: 600;
+  font-size: 1rem;
+  grid-column: 1;
+}
+
+.dish-block {
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  grid-column: 1;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* signup + edit links sit in the right column, spanning both rows */
+.dish-list a {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  min-height: 36px;
+  padding: 7px 14px;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* edit link is secondary when next to signup */
+.dish-list li a + a {
+  grid-row: unset;
+  grid-column: unset;
+  background: transparent;
+  color: var(--c-primary);
+  border: 1px solid var(--c-border);
+  min-height: 32px;
+  padding: 5px 12px;
+}
+
+.dish-list li a + a:hover {
+  background: var(--c-bg);
+  border-color: var(--c-primary);
+}
+
+/* when both links exist, stack them in column 2 */
+.dish-list li:has(a + a) {
+  grid-template-rows: auto auto auto;
+}
+
+.dish-list li:has(a + a) a:first-of-type {
+  grid-row: 1 / 2;
+  grid-column: 2;
+}
+
+.dish-list li:has(a + a) a + a {
+  grid-row: 2 / 3;
+  grid-column: 2;
+  background: transparent;
+  color: var(--c-primary);
+  border: 1px solid var(--c-border);
+  min-height: 32px;
+  padding: 5px 12px;
+}
+
+/* ─── chooser section (CookSummary) ───────────────────────────────────────── */
+[data-testid='chooser-section'] {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+[data-testid='chooser-current'] {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+}
+
+.chooser-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.chooser-row select {
+  flex: 1;
   min-height: 44px;
   padding: 8px 12px;
-  font-size: 16px; /* >=16px avoids mobile zoom-on-focus */
-  box-sizing: border-box;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.auth-screen button,
-.screen button {
-  min-height: 44px;
-  padding: 10px 16px;
-  font-size: 16px;
-  cursor: pointer;
+.chooser-row select:focus {
+  outline: none;
+  border-color: var(--c-border-focus);
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 0.12);
 }
 
+.chooser-feedback {
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
+
+[data-testid='chooser-saved'] {
+  color: var(--c-success);
+}
+
+[data-testid='chooser-error'] {
+  color: var(--c-error);
+}
+
+/* ─── day-grid (CookSummary + SignupPage) ──────────────────────────────────── */
+.day-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.day-grid button,
+.day {
+  min-height: 40px;
+  padding: 7px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+}
+
+.day-grid button:hover:not(:disabled),
+.day:hover:not(:disabled) {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+  background: var(--c-surface);
+}
+
+.day-grid button.selected,
+.day.selected,
+.day-grid button[aria-pressed='true'],
+.day[aria-pressed='true'] {
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+  border-color: var(--c-primary);
+}
+
+/* ─── summary list (CookSummary) ──────────────────────────────────────────── */
+.summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-list li {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.9375rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─── feedback / error messages ───────────────────────────────────────────── */
 .form-error {
   margin: 0;
-  color: #b00020;
+  color: var(--c-error);
+  font-size: 0.875rem;
 }
 
 .auth-loading {
-  padding: 24px 16px;
+  padding: 56px 16px;
   text-align: center;
+  color: var(--c-text-muted);
 }

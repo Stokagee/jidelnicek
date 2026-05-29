@@ -98,33 +98,43 @@ export function CookSummary() {
                 : cs.cookSummary.chooser.notSet)}
           </strong>
         </p>
-        <select
-          data-testid="chooser-select"
-          value={pendingChooserId}
-          onChange={(e) => {
-            setPendingChooserId(e.target.value === '' ? '' : Number(e.target.value))
-            setChooserSaved(false)
-          }}
-        >
-          <option value="" disabled>
-            {cs.cookSummary.chooser.placeholder}
-          </option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name ?? cs.cookSummary.chooser.unknown}
+        <div className="chooser-row">
+          <select
+            data-testid="chooser-select"
+            value={pendingChooserId}
+            onChange={(e) => {
+              setPendingChooserId(e.target.value === '' ? '' : Number(e.target.value))
+              setChooserSaved(false)
+            }}
+          >
+            <option value="" disabled>
+              {cs.cookSummary.chooser.placeholder}
             </option>
-          ))}
-        </select>
-        <button
-          data-testid="chooser-save"
-          type="button"
-          disabled={pendingChooserId === '' || chooserSaving}
-          onClick={onSaveChooser}
-        >
-          {cs.cookSummary.chooser.saveButton}
-        </button>
-        {chooserSaved && <span data-testid="chooser-saved">{cs.cookSummary.chooser.saved}</span>}
-        {chooserError && <span data-testid="chooser-error">{chooserError}</span>}
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name ?? cs.cookSummary.chooser.unknown}
+              </option>
+            ))}
+          </select>
+          <button
+            data-testid="chooser-save"
+            type="button"
+            disabled={pendingChooserId === '' || chooserSaving}
+            onClick={onSaveChooser}
+          >
+            {cs.cookSummary.chooser.saveButton}
+          </button>
+        </div>
+        {chooserSaved && (
+          <span className="chooser-feedback" data-testid="chooser-saved">
+            {cs.cookSummary.chooser.saved}
+          </span>
+        )}
+        {chooserError && (
+          <span className="chooser-feedback" data-testid="chooser-error">
+            {chooserError}
+          </span>
+        )}
       </section>
 
       <div className="day-grid" role="group" aria-label={cs.cookSummary.dayLabel}>
