@@ -217,7 +217,6 @@ def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     assert state.last_run_at > stale
 
 
-@pytest.mark.xfail(reason="worker delivery not implemented yet (T-8.3)", strict=True)
 def test_failed_discord_delivery_is_retried_AC10(
     db_session: Session,
 ) -> None:
