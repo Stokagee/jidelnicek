@@ -92,7 +92,6 @@ Missing required field
 Unauthorized user
     [Documentation]    Attempt to create a dish while logged in as a non-admin user. Expect 403.
     [Setup]    Create API Session
-    Load Dotenv    dotenv_path=../../../.env
     ${response}=    Login    name=%{USER2_NAME}    password=%{USER2_PASSWORD}
     Should Be True    ${response.status_code} == 200    msg=Failed to log in as non-admin user
     ${response}=    Create Dish    week_id=1    name=${dish_name}   start_date=2026-05-29    end_date=2026-06-01
