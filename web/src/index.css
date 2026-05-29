@@ -18,3 +18,49 @@ body {
   margin: 0 auto;
   padding: 24px 16px;
 }
+
+/* Mobile-first: usable on a 360px phone, tap targets >= 44px (frontend skill). */
+.auth-screen,
+.screen {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.auth-screen form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field input {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 16px; /* >=16px avoids mobile zoom-on-focus */
+  box-sizing: border-box;
+}
+
+.auth-screen button,
+.screen button {
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.form-error {
+  margin: 0;
+  color: #b00020;
+}
+
+.auth-loading {
+  padding: 24px 16px;
+  text-align: center;
+}

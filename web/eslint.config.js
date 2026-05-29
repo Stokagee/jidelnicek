@@ -40,5 +40,9 @@ export default tseslint.config(
         afterEach: 'readonly',
       },
     },
+    rules: {
+      // Test helpers export non-components; fast-refresh constraints don't apply.
+      'react-refresh/only-export-components': 'off',
+    },
   },
 )

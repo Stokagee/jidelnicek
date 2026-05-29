@@ -22,6 +22,12 @@ export const cs = {
     submit: 'Přihlásit se',
     invalidCredentials: 'Nesprávné jméno nebo heslo.',
   },
+  home: {
+    // Placeholder landing until the real "This week" screen lands (T-7.3).
+    loggedInAs: 'Přihlášen/a jako',
+    placeholder: 'Tento týden — připravujeme.',
+    logout: 'Odhlásit se',
+  },
 } as const
 
 export type Messages = typeof cs
