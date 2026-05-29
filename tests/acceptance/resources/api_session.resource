@@ -60,6 +60,16 @@ Generate Claim Token
     ...    expected_status=any
     RETURN    ${response}
 
+Set Chooser
+    [Documentation]    PUT /weeks/{id}/chooser — admin sets the week's chooser (FR-W2,
+    ...    BR-1). Requires the session to be logged in as admin. Used to SEED the
+    ...    chooser before driving dish-permission checks in the browser.
+    [Arguments]    ${week_id}    ${chooser_id}
+    ${body}=    Create Dictionary    chooser_id=${chooser_id}
+    ${response}=    PUT On Session    ${API_SESSION}    /weeks/${week_id}/chooser    json=${body}
+    ...    expected_status=any
+    RETURN    ${response}
+
 Generate Payload From Schema
     [Documentation]    Realistic happy-path request body via TalosForge. Boundary /
     ...    negative AC values are set explicitly by the test, not generated.

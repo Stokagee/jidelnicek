@@ -28,6 +28,18 @@ export const cs = {
     placeholder: 'Tento týden — připravujeme.',
     logout: 'Odhlásit se',
   },
+  dish: {
+    addAction: 'Přidat jídlo',
+    createTitle: 'Nové jídlo',
+    editTitle: 'Upravit jídlo',
+    nameLabel: 'Název jídla',
+    startLabel: 'Od (den)',
+    endLabel: 'Do (den)',
+    submit: 'Uložit jídlo',
+    delete: 'Smazat jídlo',
+    invalidBlock: 'Konec bloku nesmí být před začátkem.',
+    forbidden: 'Jídlo smí přidat jen kuchař nebo volitel týdne.',
+  },
 } as const
 
 export type Messages = typeof cs
