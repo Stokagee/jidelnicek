@@ -3,6 +3,7 @@
 // hooks match the Robot page-object (chooser_propose_page.resource).
 import { useState, type FormEvent } from 'react'
 import { BlockPicker } from '../components/BlockPicker'
+import { addDays } from '../utils/dates'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { cs } from '../i18n/cs'
 
@@ -15,7 +16,8 @@ export interface DishFormValues {
 export interface DishFormProps {
   title: string
   initial?: DishFormValues
-  weekStart?: string
+  /** First day shown in the block-picker grid (ISO, typically today). */
+  startIso?: string
   minDate?: string
   maxDate?: string
   error: string | null
@@ -27,10 +29,20 @@ export interface DishFormProps {
   onBack?: () => void
 }
 
+function daysInRange(start: string, end: string): string[] {
+  const result: string[] = []
+  let cur = start
+  while (cur <= end) {
+    result.push(cur)
+    cur = addDays(cur, 1)
+  }
+  return result
+}
+
 export function DishForm({
   title,
   initial,
-  weekStart,
+  startIso,
   minDate,
   maxDate,
   error,
@@ -41,8 +53,30 @@ export function DishForm({
   onBack,
 }: DishFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
+
+  // startDate / endDate are the form values passed to onSubmit and validated by
+  // the parent. They are set either by the sr-only test-hook inputs (fireEvent.change)
+  // or derived from the visual BlockPicker toggles below.
   const [startDate, setStartDate] = useState(initial?.start_date ?? '')
   const [endDate, setEndDate] = useState(initial?.end_date ?? '')
+
+  // selectedDays drives the visual BlockPicker. Kept in sync with start/end.
+  const [selectedDays, setSelectedDays] = useState<string[]>(() => {
+    if (!initial?.start_date) return []
+    if (!initial?.end_date || initial.end_date === initial.start_date)
+      return [initial.start_date]
+    return daysInRange(initial.start_date, initial.end_date)
+  })
+
+  function toggleDay(day: string) {
+    const next = selectedDays.includes(day)
+      ? selectedDays.filter((d) => d !== day)
+      : [...selectedDays, day]
+    setSelectedDays(next)
+    const sorted = [...next].sort()
+    setStartDate(sorted[0] ?? '')
+    setEndDate(sorted[sorted.length - 1] ?? '')
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -70,16 +104,48 @@ export function DishForm({
             autoFocus
           />
         </label>
+
         <div className="field">
           <span>{cs.dish.blockPickerLabel}</span>
-          {weekStart ? (
-            <BlockPicker
-              weekStart={weekStart}
-              startDate={startDate}
-              endDate={endDate}
-              onStartChange={setStartDate}
-              onEndChange={setEndDate}
-            />
+          {startIso ? (
+            <>
+              <BlockPicker
+                startIso={startIso}
+                selectedDays={selectedDays}
+                onToggle={toggleDay}
+              />
+              {/* sr-only inputs keep data-testid for existing tests via fireEvent.change.
+                  Setting start resets selection; setting end keeps start and extends range
+                  (or just sets end directly so tests that set end < start still fail
+                  validation in the parent — preserving the invalidBlock error test). */}
+              <input
+                data-testid="dish-start-date"
+                type="date"
+                className="sr-only"
+                value={startDate}
+                onChange={(e) => {
+                  const d = e.target.value
+                  setStartDate(d)
+                  setSelectedDays(d ? [d] : [])
+                  if (!d) setEndDate('')
+                }}
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+              <input
+                data-testid="dish-end-date"
+                type="date"
+                className="sr-only"
+                value={endDate}
+                onChange={(e) => {
+                  const d = e.target.value
+                  setEndDate(d)
+                  // Keep start intact; validation in parent catches end < start.
+                }}
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </>
           ) : (
             <>
               <label className="field">
@@ -107,6 +173,7 @@ export function DishForm({
             </>
           )}
         </div>
+
         {error && (
           <p data-testid="dish-error" className="form-error" role="alert">
             {error}

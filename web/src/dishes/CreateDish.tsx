@@ -41,6 +41,9 @@ export function CreateDish() {
   }
 
   const { min, max } = weekRange(week.start_date)
+  const todayPrague = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(
+    new Date(),
+  )
 
   async function onSubmit(values: DishFormValues) {
     setError(null)
@@ -62,7 +65,7 @@ export function CreateDish() {
   return (
     <DishForm
       title={cs.dish.createTitle}
-      weekStart={week.start_date}
+      startIso={todayPrague}
       minDate={min}
       maxDate={max}
       error={error}
