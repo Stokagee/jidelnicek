@@ -29,6 +29,8 @@ export const cs = {
     title: 'Přihlášení',
     submit: 'Přihlásit se',
     invalidCredentials: 'Nesprávné jméno nebo heslo.',
+    nameRequired: 'Zadej jméno.',
+    passwordRequired: 'Zadej heslo.',
   },
   home: {
     loggedInAs: 'Přihlášen/a jako',
