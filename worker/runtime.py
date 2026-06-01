@@ -24,6 +24,7 @@ from shared.db import get_sessionmaker
 from worker.config import get_worker_config
 from worker.delivery import deliver_pending
 from worker.digest import run_due_digest
+from worker.weeks import ensure_current_week
 
 log = logging.getLogger("worker.runtime")
 
@@ -62,6 +63,16 @@ async def send_digest_if_due(ctx: dict) -> bool:
         )
 
 
+async def ensure_week(ctx: dict) -> bool:
+    """FR-W1: make sure the current week's row exists (issue #78).
+
+    V1 has no week-creation endpoint, so without this every new ISO week makes
+    `GET /weeks/current` 404 until someone inserts a row. Idempotent (BR-1: no
+    chooser is assigned here)."""
+    with ctx["sessionmaker"]() as session:
+        return ensure_current_week(session)
+
+
 def _sweep_seconds() -> set[int]:
     step = max(1, min(60, get_worker_config().sweep_interval_seconds))
     return set(range(0, 60, step))
@@ -75,6 +86,10 @@ class WorkerSettings:
         cron(sweep_pending, second=_sweep_seconds(), run_at_startup=True),
         # Check the digest slot every 5 min and on startup (catch-up, FR-N4).
         cron(send_digest_if_due, minute=set(range(0, 60, 5)), run_at_startup=True),
+        # Ensure the current week's row exists (FR-W1, issue #78): hourly + on
+        # startup so a week that rolled over while the worker was down (PC asleep)
+        # is created as soon as it comes back up. Idempotent, so cheap to repeat.
+        cron(ensure_week, minute={0}, run_at_startup=True),
     ]
     on_startup: ClassVar[Callable] = startup
     on_shutdown: ClassVar[Callable] = shutdown
