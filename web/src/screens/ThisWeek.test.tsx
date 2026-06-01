@@ -29,6 +29,21 @@ describe('ThisWeek (§14.3 hub)', () => {
     expect(screen.getByTestId('dish-5-signup')).toHaveAttribute('href', '/dishes/5/signup')
   })
 
+  it('shows the dish block as a Czech day-month range, not raw ISO (#47)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 2, is_admin: false }) },
+        { path: '/weeks/current', body: weekWithDishes() },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/' })
+    const dish = await screen.findByTestId('dish-5')
+    // makeDish defaults to 2026-01-05 .. 2026-01-07.
+    expect(dish).toHaveTextContent('5. 1. – 7. 1.')
+    expect(dish).not.toHaveTextContent('2026-01-05')
+  })
+
   it('shows the add-dish action and cook-summary link to the admin', async () => {
     vi.stubGlobal(
       'fetch',

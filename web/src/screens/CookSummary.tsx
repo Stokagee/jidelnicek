@@ -10,7 +10,7 @@ import { getCurrentWeek, setChooser } from '../api/weeks'
 import { BlockPicker } from '../components/BlockPicker'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../auth/useAuth'
-import { addDays } from '../utils/dates'
+import { addDays, formatDayMonthRange } from '../utils/dates'
 import { cs } from '../i18n/cs'
 
 function todayPrague(): string {
@@ -191,7 +191,7 @@ export function CookSummary() {
           </strong>
           {week.chooser_start_date && week.chooser_end_date && (
             <span style={{ marginLeft: 8, fontSize: '0.875rem', color: 'var(--c-text-muted)' }}>
-              ({week.chooser_start_date} – {week.chooser_end_date})
+              ({formatDayMonthRange(week.chooser_start_date, week.chooser_end_date)})
             </span>
           )}
         </p>
