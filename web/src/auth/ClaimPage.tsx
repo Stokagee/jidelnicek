@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { claim } from '../api/auth'
 import { cs } from '../i18n/cs'
 import { useAuth } from './useAuth'
+import { validateClaimForm } from './validateClaimForm'
 
 export function ClaimPage() {
   const { token } = useParams<{ token: string }>()
@@ -19,6 +20,11 @@ export function ClaimPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    const validationError = validateClaimForm(name, password) // #79: required fields before POST.
+    if (validationError) {
+      setError(validationError)
+      return
+    }
     setSubmitting(true)
     try {
       const me = await claim(token ?? '', name, password)

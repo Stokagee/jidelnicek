@@ -24,6 +24,8 @@ export const cs = {
     intro: 'Nastav si jméno a heslo pro přístup do jídelníčku.',
     submit: 'Vytvořit účet',
     invalidToken: 'Tento odkaz už neplatí nebo byl použit.',
+    nameRequired: 'Zadej jméno.',
+    passwordRequired: 'Zadej heslo.',
   },
   login: {
     title: 'Přihlášení',
