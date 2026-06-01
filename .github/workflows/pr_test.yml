@@ -12,8 +12,8 @@ jobs:
     
     container:
       image: ghcr.io/stokagee/jidelnicek-ci:latest
-      # KLÍČOVÁ ZMĚNA: Přidán --network host, aby kontejner viděl porty z docker-compose
-      options: --user root --network host
+      # ZMĚNA: Místo --network host mapujeme hostitelskou bránu jako alias host.docker.internal
+      options: --user root --add-host=host.docker.internal:host-gateway
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
 
@@ -37,18 +37,20 @@ jobs:
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru
+      # 4. Příprava .env souboru (směřujeme testy na host.docker.internal místo 127.0.0.1)
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
+            echo "DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/jidelnicek" >> .env
+            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           else
             echo "POSTGRES_DB=jidelnicek" >> .env
             echo "POSTGRES_USER=postgres" >> .env
             echo "POSTGRES_PASSWORD=postgres" >> .env
-            echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/jidelnicek" >> .env
-            echo "REDIS_URL=redis://127.0.0.1:6379/0" >> .env
+            echo "DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/jidelnicek" >> .env
+            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
@@ -64,7 +66,7 @@ jobs:
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 10
 
-      # 7. Spuštění testů (přes sdílenou síť se už k DB bez problému připojí)
+      # 7. Spuštění testů (pytest teď uvidí DB přes host.docker.internal)
       - name: Run pytest
         run: pytest
 
