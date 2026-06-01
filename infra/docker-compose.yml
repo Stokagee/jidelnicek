@@ -19,8 +19,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       TZ: ${TZ:-Europe/Prague}
       PGTZ: ${TZ:-Europe/Prague}
+      # FR-O3: consumed by the initdb script to create Grafana's read-only role.
+      GRAFANA_DB_USER: ${GRAFANA_DB_USER:-grafana_ro}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:-}
     volumes:
       - db_data:/var/lib/postgresql/data
+      # Read-only role bootstrap; runs once on a fresh data volume (FR-O3).
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
     ports:
       - "${HOST_BIND:-0.0.0.0}:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -114,13 +119,22 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_INSTALL_PLUGINS: ""
+      # FR-O3: Postgres datasource (read-only) — interpolated into provisioning.
+      GRAFANA_DB_HOST: ${GRAFANA_DB_HOST:-db}
+      GRAFANA_DB_PORT: ${GRAFANA_DB_PORT:-5432}
+      GRAFANA_DB_NAME: ${GRAFANA_DB_NAME:-${POSTGRES_DB:-jidelnicek}}
+      GRAFANA_DB_USER: ${GRAFANA_DB_USER:-grafana_ro}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:-}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     ports:
       - "127.0.0.1:3000:3000"
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

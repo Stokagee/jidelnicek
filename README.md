@@ -108,6 +108,12 @@ The locked product spec (single source of truth) lives in [`jidelnicek-docs-v1.m
 
 The web app is at <http://localhost:5173>, the API at <http://localhost:8000>, Prometheus at <http://localhost:9090>, and Grafana at <http://localhost:3000>.
 
+### Observability (EP-9 · FR-O)
+
+- The API exposes Prometheus metrics at `/metrics` (request count, latency histogram, in-flight gauge). Prometheus scrapes the `api` job and should show it `UP` at <http://localhost:9090/targets>.
+- Grafana auto-provisions two datasources — **Prometheus** (API health) and **Postgres** (business view, read-only role) — plus one sample dashboard *"Jidelnicek — overview (sample)"*. Grafana and Prometheus are bound to `127.0.0.1` only (NFR-2).
+- The Postgres datasource uses a dedicated **read-only** role (`GRAFANA_DB_USER`/`GRAFANA_DB_PASSWORD`), created by `infra/postgres/initdb` **only on a fresh database volume**. If you already have a `db_data` volume from before EP-9, either recreate it (`docker compose down -v`, then re-run migrations + seed) or create the role manually so the datasource turns healthy.
+
 ---
 
 ## Day-to-day commands

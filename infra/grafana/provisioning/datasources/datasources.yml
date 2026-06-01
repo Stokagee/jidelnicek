@@ -1,8 +1,11 @@
-# Grafana datasource provisioning (FR-O3). T-0.2 ships a Prometheus datasource;
-# the Postgres datasource for business dashboards lands in EP-9 (T-9.2).
+# Grafana datasource provisioning (FR-O2/FR-O3). Two datasources:
+#   - Prometheus: operational view (API health, latency, error rate).
+#   - Postgres:   business view (signups, members, portions per week).
+# The owner can add their own dashboards on top without touching this file.
 apiVersion: 1
 
 datasources:
+  # FR-O2: operational metrics scraped from the api `/metrics` endpoint.
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -10,3 +13,22 @@ datasources:
     url: http://prometheus:9090
     isDefault: true
     editable: false
+
+  # FR-O3: business datasource. Uses a READ-ONLY role (skill rule 3) — never the
+  # app/admin user. Credentials come from the environment so no secret is
+  # committed; see infra/postgres/initdb/10-grafana-readonly.sh.
+  - name: Postgres
+    type: postgres
+    access: proxy
+    uid: postgres
+    url: ${GRAFANA_DB_HOST:-db}:${GRAFANA_DB_PORT:-5432}
+    user: ${GRAFANA_DB_USER:-grafana_ro}
+    database: ${GRAFANA_DB_NAME:-jidelnicek}
+    isDefault: false
+    editable: false
+    secureJsonData:
+      password: ${GRAFANA_DB_PASSWORD}
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false

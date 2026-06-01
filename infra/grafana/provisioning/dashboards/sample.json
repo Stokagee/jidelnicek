@@ -1,0 +1,118 @@
+{
+  "uid": "jidelnicek-sample",
+  "title": "Jidelnicek — overview (sample)",
+  "tags": ["jidelnicek", "sample"],
+  "timezone": "Europe/Prague",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "API health",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Request rate by route",
+      "description": "FR-O1: requests/s per templated route (5m rate).",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "drawStyle": "line", "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (handler) (rate(http_requests_total[5m]))",
+          "legendFormat": "{{handler}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "p95 latency by route",
+      "description": "FR-O1: 95th percentile request duration per route.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "drawStyle": "line", "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum by (handler, le) (rate(http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{handler}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Error rate (5xx)",
+      "description": "FR-O1: 5xx responses per second across all routes.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "drawStyle": "line", "fillOpacity": 10 } },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum (rate(http_requests_total{status=~\"5..\"}[5m]))",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Business",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Planned portions this week (per day)",
+      "description": "FR-O3 business view: active (not unregistered) portions per day for the current ISO week, from the signups table.",
+      "datasource": { "type": "postgres", "uid": "postgres" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "axisLabel": "portions" } },
+        "overrides": []
+      },
+      "options": {
+        "xField": "day",
+        "orientation": "vertical",
+        "showValue": "auto",
+        "legend": { "showLegend": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "datasource": { "type": "postgres", "uid": "postgres" },
+          "rawSql": "SELECT day::text AS day, SUM(portions) AS portions FROM signups WHERE deleted_at IS NULL AND day >= date_trunc('week', now())::date AND day < (date_trunc('week', now()) + interval '7 days')::date GROUP BY day ORDER BY day;"
+        }
+      ]
+    }
+  ]
+}
