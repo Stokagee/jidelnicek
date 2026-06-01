@@ -38,15 +38,20 @@ jobs:
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
-            echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
-            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
           else
             echo "POSTGRES_DB=postgres" >> .env
             echo "POSTGRES_USER=jidelnicek" >> .env
             echo "POSTGRES_PASSWORD=change-me-strong-password" >> .env
-            echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
-            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
           fi
+          
+          # Replace any hardcoded local addresses inherited from the template
+          sed -i 's/127.0.0.1/host.docker.internal/g' .env
+          sed -i 's/localhost/host.docker.internal/g' .env
+          
+          # Explicitly append and enforce correct CI parameters
+          echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
+          echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
+          echo "DB_HOST=host.docker.internal" >> .env
 
       - name: Install dependencies into container system
         run: |
