@@ -12,12 +12,12 @@ jobs:
     
     container:
       image: ghcr.io/stokagee/jidelnicek-ci:latest
-      options: --user root
+      # KLÍČOVÁ ZMĚNA: Přidán --network host, aby kontejner viděl porty z docker-compose
+      options: --user root --network host
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
 
     env:
-      UV_LINK_MODE: copy
       PYTHONPATH: .
 
     steps:
@@ -32,12 +32,12 @@ jobs:
           repository: stokagee/robotframework-talosforge
           path: talosforge_tmp
 
-      # 3. Přesun o úroveň výš, aby ho uv vidělo přes "../"
+      # 3. Přesun o úroveň výš, aby seděly cesty z pyproject.toml
       - name: Move talosforge to sibling directory
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru (včetně SESSION_SECRET)
+      # 4. Příprava .env souboru
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
@@ -47,24 +47,26 @@ jobs:
             echo "POSTGRES_DB=jidelnicek" >> .env
             echo "POSTGRES_USER=postgres" >> .env
             echo "POSTGRES_PASSWORD=postgres" >> .env
-            echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/jidelnicek" >> .env
-            echo "REDIS_URL=redis://localhost:6379/0" >> .env
+            echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/jidelnicek" >> .env
+            echo "REDIS_URL=redis://127.0.0.1:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
-      # 5. Kompletní instalace z pyproject.toml včetně [project.optional-dependencies] dev skupiny
-      - name: Install all dependencies
-        run: uv sync --all-extras --all-groups
+      # 5. Instalace balíčků přímo do systému kontejneru
+      - name: Install dependencies into container system
+        run: |
+          uv pip install --system -e ../robotframework-talosforge
+          uv pip install --system -e .[dev]
 
       # 6. Spuštění databáze a redis z docker-compose
       - name: Start Infrastructure (DB & Redis)
         run: |
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
-          sleep 5
+          sleep 10
 
-      # 7. Spuštění testů přímo přes nainstalovaný binár z .venv (obcházíme uv run izolaci)
+      # 7. Spuštění testů (přes sdílenou síť se už k DB bez problému připojí)
       - name: Run pytest
-        run: .venv/bin/pytest
+        run: pytest
 
       # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
