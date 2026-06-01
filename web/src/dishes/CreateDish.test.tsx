@@ -50,6 +50,30 @@ describe('CreateDish (FR-D1, FR-D2)', () => {
     expect(posted).toBe(false)
   })
 
+  it('blocks submit and shows a name-required error when the name is empty (#79)', async () => {
+    const fetchMock = mockFetch([
+      { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+      { path: '/weeks/current', body: makeWeek({ id: 9, start_date: '2026-01-05' }) },
+      { method: 'POST', path: '/dishes', status: 201, body: makeDish({ id: 5 }) },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    renderWithProviders(<AppRoutes />, { route: '/dishes/new' })
+    // Pick a valid block but leave the name empty: the user must see a name error,
+    // not the misleading "block end before start" message (#79).
+    fireEvent.change(await screen.findByTestId('dish-start-date'), {
+      target: { value: '2026-01-05' },
+    })
+    fireEvent.change(screen.getByTestId('dish-end-date'), { target: { value: '2026-01-07' } })
+    await userEvent.click(screen.getByTestId('dish-submit'))
+
+    expect(await screen.findByTestId('dish-error')).toHaveTextContent(cs.dish.nameRequired)
+    // No POST should have been attempted.
+    const posted = (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.calls.some(
+      (c) => (c[1] as RequestInit)?.method === 'POST',
+    )
+    expect(posted).toBe(false)
+  })
+
   it('redirects a non-chooser member away from the create route (AC-5)', async () => {
     vi.stubGlobal(
       'fetch',

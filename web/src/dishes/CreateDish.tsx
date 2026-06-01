@@ -8,10 +8,11 @@ import type { Week } from '../api/types'
 import { createDish } from '../api/dishes'
 import { getCurrentWeek } from '../api/weeks'
 import { useAuth } from '../auth/useAuth'
-import { canPropose, isValidBlock } from '../domain/dishBlock'
+import { canPropose } from '../domain/dishBlock'
 import { cs } from '../i18n/cs'
 import { DishForm, type DishFormValues } from './DishForm'
 import { dishErrorMessage } from './dishErrors'
+import { validateDishForm } from './validateDishForm'
 import { weekRange } from './weekRange'
 
 export function CreateDish() {
@@ -47,8 +48,9 @@ export function CreateDish() {
 
   async function onSubmit(values: DishFormValues) {
     setError(null)
-    if (!isValidBlock(values.start_date, values.end_date)) {
-      setError(cs.dish.invalidBlock)
+    const validationError = validateDishForm(values) // #79: required fields before POST.
+    if (validationError) {
+      setError(validationError)
       return
     }
     setSubmitting(true)

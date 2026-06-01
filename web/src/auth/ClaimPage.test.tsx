@@ -30,6 +30,25 @@ describe('ClaimPage (FR-A3, AC-11)', () => {
     expect(localStorage.length).toBe(0)
   })
 
+  it('blocks submit and shows a field error when a required field is empty (#79)', async () => {
+    const fetchMock = mockFetch([{ path: '/me', status: 401, body: { detail: 'no session' } }])
+    vi.stubGlobal('fetch', fetchMock)
+    renderWithProviders(<AppRoutes />, { route: '/claim/good-token' })
+    // Submitting with empty fields must name the missing field, not blame the token (#79).
+    await userEvent.click(await screen.findByTestId('claim-submit'))
+    expect(await screen.findByTestId('claim-error')).toHaveTextContent(cs.claim.nameRequired)
+
+    await userEvent.type(screen.getByTestId('claim-name'), 'nora')
+    await userEvent.click(screen.getByTestId('claim-submit'))
+    expect(await screen.findByTestId('claim-error')).toHaveTextContent(cs.claim.passwordRequired)
+
+    // No claim POST should have been attempted.
+    const posted = (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.calls.some(
+      (c) => (c[1] as RequestInit)?.method === 'POST',
+    )
+    expect(posted).toBe(false)
+  })
+
   it('shows an error for a used/invalid token (single-use, AC-11)', async () => {
     vi.stubGlobal(
       'fetch',

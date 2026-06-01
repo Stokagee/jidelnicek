@@ -8,10 +8,11 @@ import type { Week } from '../api/types'
 import { deleteDish, updateDish } from '../api/dishes'
 import { getCurrentWeek } from '../api/weeks'
 import { useAuth } from '../auth/useAuth'
-import { canEdit, isValidBlock } from '../domain/dishBlock'
+import { canEdit } from '../domain/dishBlock'
 import { cs } from '../i18n/cs'
 import { DishForm, type DishFormValues } from './DishForm'
 import { dishErrorMessage } from './dishErrors'
+import { validateDishForm } from './validateDishForm'
 import { weekRange } from './weekRange'
 
 export function EditDish() {
@@ -52,8 +53,9 @@ export function EditDish() {
 
   async function onSubmit(values: DishFormValues) {
     setError(null)
-    if (!isValidBlock(values.start_date, values.end_date)) {
-      setError(cs.dish.invalidBlock)
+    const validationError = validateDishForm(values) // #79: required fields before PATCH.
+    if (validationError) {
+      setError(validationError)
       return
     }
     setSubmitting(true)

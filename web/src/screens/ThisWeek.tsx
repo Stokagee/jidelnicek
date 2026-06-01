@@ -12,6 +12,7 @@ import { ThemeToggle } from '../components/ThemeToggle'
 import { canEdit, canPropose } from '../domain/dishBlock'
 import { cs } from '../i18n/cs'
 import { useAuth } from '../auth/useAuth'
+import { formatDayMonthRange } from '../utils/dates'
 
 export function ThisWeek() {
   const navigate = useNavigate()
@@ -54,10 +55,12 @@ export function ThisWeek() {
       {week && me && !me.is_admin && week.chooser_id === me.id && week.chooser_start_date && (
         <p className="chooser-days-info" data-testid="chooser-days-info">
           {cs.thisWeek.yourDays}{' '}
-          <strong>{week.chooser_start_date}</strong>
-          {week.chooser_end_date && week.chooser_end_date !== week.chooser_start_date && (
-            <> – <strong>{week.chooser_end_date}</strong></>
-          )}
+          <strong>
+            {formatDayMonthRange(
+              week.chooser_start_date,
+              week.chooser_end_date ?? week.chooser_start_date,
+            )}
+          </strong>
         </p>
       )}
 
@@ -84,7 +87,7 @@ export function ThisWeek() {
             <li key={dish.id} data-testid={`dish-${dish.id}`}>
               <span className="dish-name">{dish.name}</span>
               <span className="dish-block">
-                {dish.start_date} – {dish.end_date}
+                {formatDayMonthRange(dish.start_date, dish.end_date)}
               </span>
               <Link data-testid={`dish-${dish.id}-signup`} to={`/dishes/${dish.id}/signup`}>
                 {cs.thisWeek.signup}

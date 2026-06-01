@@ -3,7 +3,7 @@
 // can pick 1–7 days freely. The parent manages selectedDays state; this
 // component is purely presentational (controlled).
 import { cs } from '../i18n/cs'
-import { addDays } from '../utils/dates'
+import { addDays, formatDayMonth } from '../utils/dates'
 
 function dayAbbr(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
@@ -62,11 +62,11 @@ export function BlockPicker({ startIso, selectedDays, onToggle, allowedStart, al
       </div>
       {selectedDays.length > 0 && (
         <p className="block-picker-summary">
-          {cs.dish.blockFrom} <strong>{min}</strong>
+          {cs.dish.blockFrom} <strong>{formatDayMonth(min)}</strong>
           {max !== min && (
             <>
               {' '}
-              {cs.dish.blockTo} <strong>{max}</strong>
+              {cs.dish.blockTo} <strong>{formatDayMonth(max)}</strong>
             </>
           )}
         </p>

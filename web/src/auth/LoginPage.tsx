@@ -7,6 +7,7 @@ import { login } from '../api/auth'
 import { ApiError } from '../api/client'
 import { cs } from '../i18n/cs'
 import { useAuth } from './useAuth'
+import { validateLoginForm } from './validateLoginForm'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -19,6 +20,11 @@ export function LoginPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    const validationError = validateLoginForm(name, password) // #79: required fields before POST.
+    if (validationError) {
+      setError(validationError)
+      return
+    }
     setSubmitting(true)
     try {
       const me = await login(name, password)

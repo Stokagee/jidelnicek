@@ -4,3 +4,17 @@ export function addDays(iso: string, n: number): string {
   const dt = new Date(Date.UTC(y, m - 1, d + n))
   return dt.toISOString().slice(0, 10)
 }
+
+/** Format an ISO date (YYYY-MM-DD) as Czech "D. M." — day and month, no leading
+ *  zeros, no year (#47). Returns the input unchanged when it isn't an ISO date. */
+export function formatDayMonth(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (!m) return iso
+  return `${Number(m[3])}. ${Number(m[2])}.`
+}
+
+/** Format an ISO date range as Czech "D. M. – D. M." (#47); a single-day range
+ *  (start === end) collapses to one date. */
+export function formatDayMonthRange(start: string, end: string): string {
+  return start === end ? formatDayMonth(start) : `${formatDayMonth(start)} – ${formatDayMonth(end)}`
+}

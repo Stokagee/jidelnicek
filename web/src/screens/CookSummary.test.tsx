@@ -91,6 +91,30 @@ describe('CookSummary (§14.5, AC-4)', () => {
     expect(screen.getByRole('option', { name: 'alice' })).toBeInTheDocument()
   })
 
+  it('shows the chooser range as a Czech day-month range, not raw ISO (#47)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+        {
+          path: '/weeks/current',
+          body: makeWeek({
+            id: 9,
+            start_date: '2026-01-05',
+            chooser_id: 2,
+            chooser_start_date: '2026-01-05',
+            chooser_end_date: '2026-01-11',
+          }),
+        },
+        { path: '/users', body: twoMembers() },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
+    const current = await screen.findByTestId('chooser-current')
+    expect(current).toHaveTextContent('5. 1. – 11. 1.')
+    expect(current).not.toHaveTextContent('2026-01-05')
+  })
+
   it('admin picks chooser, opens day picker, confirms and sees saved (FR-W2, T-4.3)', async () => {
     vi.stubGlobal(
       'fetch',
