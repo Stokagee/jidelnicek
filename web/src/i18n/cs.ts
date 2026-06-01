@@ -41,20 +41,21 @@ export const cs = {
     signup: 'Přihlásit se',
     edit: 'Upravit',
     cookSummaryLink: 'Souhrn kuchaře',
-    // Member-facing "who is signed up / portion totals" arrives once the BE adds
-    // those endpoints (#53); until then this screen lists dishes and links to signup.
+    yourDays: 'Tvoje dny jako volitel:',
   },
   cookSummary: {
     title: 'Souhrn kuchaře',
-    dayLabel: 'Den:',
     portionsUnit: '×',
-    noSignups: 'Na tento den nikdo není přihlášen.',
+    noSignups: '—',
     createDish: 'Založit jídlo',
     chooser: {
       currentLabel: 'Volitel týdne:',
       notSet: 'Zatím není nastaven',
+      daysLabel: 'Dny volitele:',
       placeholder: '— vyberte volitele —',
-      saveButton: 'Nastav volitele',
+      setButton: 'Nastav volitele',
+      confirmButton: 'Potvrdit',
+      cancelButton: 'Zrušit',
       saved: 'Volitel nastaven.',
       unknown: 'Neznámý uživatel',
     },

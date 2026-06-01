@@ -18,6 +18,9 @@ export interface DishFormProps {
   initial?: DishFormValues
   /** First day shown in the block-picker grid (ISO, typically today). */
   startIso?: string
+  /** When set, only days within [allowedStart, allowedEnd] are selectable (chooser restriction). */
+  allowedStart?: string | null
+  allowedEnd?: string | null
   minDate?: string
   maxDate?: string
   error: string | null
@@ -43,6 +46,8 @@ export function DishForm({
   title,
   initial,
   startIso,
+  allowedStart,
+  allowedEnd,
   minDate,
   maxDate,
   error,
@@ -113,6 +118,8 @@ export function DishForm({
                 startIso={startIso}
                 selectedDays={selectedDays}
                 onToggle={toggleDay}
+                allowedStart={allowedStart}
+                allowedEnd={allowedEnd}
               />
               {/* sr-only inputs keep data-testid for existing tests via fireEvent.change.
                   Setting start resets selection; setting end keeps start and extends range

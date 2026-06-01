@@ -3,9 +3,9 @@
 // for the network at the single `apiFetch` choke point. The shapes here mirror
 // the live API (api/schemas/*.py); the real api/ wrappers in T-3.4+ refine them.
 
-import type { Dish, Me, Signup, User, Week } from '../api/types'
+import type { DishWithSignups, Me, Signup, User, Week } from '../api/types'
 
-export type { Dish, DishPortions, Me, Signup, User, Week } from '../api/types'
+export type { Dish, DishPortions, DishWithSignups, Me, Signup, User, Week } from '../api/types'
 
 // A fixed reference instant: Monday 2026-01-05, 12:00 Europe/Prague — identical
 // to the backend's tests/fixtures/time.py::FROZEN_NOW so FE and BE tests agree
@@ -26,7 +26,7 @@ export function makeMe(overrides: Partial<Me> = {}): Me {
   return { id: nextId(), name: 'alice', is_admin: false, ...overrides }
 }
 
-export function makeDish(overrides: Partial<Dish> = {}): Dish {
+export function makeDish(overrides: Partial<DishWithSignups> = {}): DishWithSignups {
   const id = overrides.id ?? nextId()
   return {
     id,
@@ -37,6 +37,7 @@ export function makeDish(overrides: Partial<Dish> = {}): Dish {
     slot: 'lunch',
     start_date: '2026-01-05',
     end_date: '2026-01-07',
+    signups: [],
     ...overrides,
   }
 }
@@ -46,6 +47,8 @@ export function makeWeek(overrides: Partial<Week> = {}): Week {
     id: 1,
     start_date: '2026-01-05',
     chooser_id: null,
+    chooser_start_date: null,
+    chooser_end_date: null,
     dishes: [],
     ...overrides,
   }

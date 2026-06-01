@@ -7,10 +7,19 @@ export function getCurrentWeek(): Promise<Week> {
   return apiFetch<Week>('/weeks/current')
 }
 
-/** FR-W2/FR-W3 (BR-1): admin sets/changes the week's chooser. Admin only (403 otherwise). */
-export function setChooser(weekId: number, chooserId: number): Promise<Week> {
+/** FR-W2/FR-W3 (BR-1): admin sets chooser + their days. Admin only (403 otherwise). */
+export function setChooser(
+  weekId: number,
+  chooserId: number,
+  chooserStartDate?: string | null,
+  chooserEndDate?: string | null,
+): Promise<Week> {
   return apiFetch<Week>(`/weeks/${weekId}/chooser`, {
     method: 'PUT',
-    json: { chooser_id: chooserId },
+    json: {
+      chooser_id: chooserId,
+      chooser_start_date: chooserStartDate ?? null,
+      chooser_end_date: chooserEndDate ?? null,
+    },
   })
 }

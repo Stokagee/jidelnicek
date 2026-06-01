@@ -50,6 +50,17 @@ export function ThisWeek() {
 
       <h1>{cs.thisWeek.title}</h1>
 
+      {/* Show the chooser their assigned days */}
+      {week && me && !me.is_admin && week.chooser_id === me.id && week.chooser_start_date && (
+        <p className="chooser-days-info" data-testid="chooser-days-info">
+          {cs.thisWeek.yourDays}{' '}
+          <strong>{week.chooser_start_date}</strong>
+          {week.chooser_end_date && week.chooser_end_date !== week.chooser_start_date && (
+            <> – <strong>{week.chooser_end_date}</strong></>
+          )}
+        </p>
+      )}
+
       <nav className="actions">
         {me?.is_admin && (
           <Link data-testid="link-cook-summary" to="/cook-summary">

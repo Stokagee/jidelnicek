@@ -17,9 +17,12 @@ interface Props {
   startIso: string
   selectedDays: string[]
   onToggle: (day: string) => void
+  /** When set, days outside [allowedStart, allowedEnd] are shown locked (not clickable). */
+  allowedStart?: string | null
+  allowedEnd?: string | null
 }
 
-export function BlockPicker({ startIso, selectedDays, onToggle }: Props) {
+export function BlockPicker({ startIso, selectedDays, onToggle, allowedStart, allowedEnd }: Props) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(startIso, i))
   const sorted = [...selectedDays].sort()
   const min = sorted[0] ?? ''
@@ -34,10 +37,14 @@ export function BlockPicker({ startIso, selectedDays, onToggle }: Props) {
           </span>
         ))}
         {days.map((day) => {
-          const isSelected = selectedDays.includes(day)
-          const inRange = min && max && day > min && day < max
+          const locked =
+            (allowedStart != null && day < allowedStart) ||
+            (allowedEnd != null && day > allowedEnd)
+          const isSelected = !locked && selectedDays.includes(day)
+          const inRange = !locked && min && max && day > min && day < max
           let cls = 'wc-day'
-          if (isSelected) cls += ' bp-selected'
+          if (locked) cls += ' wc-day--locked'
+          else if (isSelected) cls += ' bp-selected'
           else if (inRange) cls += ' bp-range'
           return (
             <button
@@ -45,6 +52,7 @@ export function BlockPicker({ startIso, selectedDays, onToggle }: Props) {
               type="button"
               className={cls}
               aria-pressed={isSelected}
+              disabled={locked}
               onClick={() => onToggle(day)}
             >
               {day.slice(8)}

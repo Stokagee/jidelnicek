@@ -62,12 +62,20 @@ export function CreateDish() {
     }
   }
 
+  // If the logged-in user is the chooser (not admin), restrict the block picker
+  // to their assigned days so they can only propose dishes on their days.
+  const isChooser = !me?.is_admin && week.chooser_id === me?.id
+  const allowedStart = isChooser ? (week.chooser_start_date ?? null) : null
+  const allowedEnd = isChooser ? (week.chooser_end_date ?? null) : null
+
   return (
     <DishForm
       title={cs.dish.createTitle}
-      startIso={todayPrague}
+      startIso={isChooser && allowedStart ? allowedStart : todayPrague}
       minDate={min}
       maxDate={max}
+      allowedStart={allowedStart}
+      allowedEnd={allowedEnd}
       error={error}
       submitting={submitting}
       onSubmit={onSubmit}

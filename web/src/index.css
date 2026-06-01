@@ -575,6 +575,139 @@ button.danger:hover:not(:disabled) {
   margin-bottom: 4px;
 }
 
+/* Days outside the allowed range (chooser day restriction) */
+.wc-day--locked {
+  background: var(--c-bg);
+  border-color: var(--c-border);
+  color: var(--c-border);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── week summary table (CookSummary) ────────────────────────────────────── */
+.week-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.week-table th,
+.week-table td {
+  padding: 8px 10px;
+  text-align: center;
+  border: 1px solid var(--c-border);
+  white-space: nowrap;
+}
+
+.week-table thead th {
+  background: var(--c-bg);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
+}
+
+.week-table thead th.chooser-day {
+  background: rgb(79 70 229 / 0.1);
+  color: var(--c-primary);
+}
+
+.week-table tbody td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.week-table .portions-badge {
+  display: inline-block;
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* chooser set flow */
+.chooser-flow {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chooser-flow p {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+}
+
+.chooser-trigger-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chooser-trigger-row select {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.chooser-trigger-row select:focus {
+  outline: none;
+  border-color: var(--c-border-focus);
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 0.12);
+}
+
+.chooser-day-step {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+}
+
+.chooser-day-step > p {
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.chooser-confirm-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chooser-feedback {
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
+
+/* chooser days badge in ThisWeek */
+.chooser-days-info {
+  margin: -8px 0 16px;
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+  background: rgb(79 70 229 / 0.08);
+  border: 1px solid rgb(79 70 229 / 0.2);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+
 /* ─── dark mode ────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {

@@ -21,3 +21,7 @@ class Week(Base, TimestampMixin):
     chooser_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+    # FR-W2 extension: which days of the week the chooser handles.  Both nullable
+    # so existing weeks without a chooser keep working.
+    chooser_start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    chooser_end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
