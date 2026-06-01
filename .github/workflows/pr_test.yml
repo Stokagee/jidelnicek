@@ -12,7 +12,6 @@ jobs:
     
     container:
       image: ghcr.io/stokagee/jidelnicek-ci:latest
-      # ZMĚNA: Místo --network host mapujeme hostitelskou bránu jako alias host.docker.internal
       options: --user root --add-host=host.docker.internal:host-gateway
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
@@ -37,20 +36,18 @@ jobs:
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru (směřujeme testy na host.docker.internal místo 127.0.0.1)
+      # 4. Příprava .env souboru (pro jistotu, kdyby ho kód přece jen někde četl)
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
-            echo "DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/jidelnicek" >> .env
-            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           else
-            echo "POSTGRES_DB=jidelnicek" >> .env
-            echo "POSTGRES_USER=postgres" >> .env
-            echo "POSTGRES_PASSWORD=postgres" >> .env
-            echo "DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5432/jidelnicek" >> .env
-            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
+            echo "POSTGRES_DB=postgres" >> .env
+            echo "POSTGRES_USER=jidelnicek" >> .env
+            echo "POSTGRES_PASSWORD=change-me-strong-password" >> .env
+            echo "DATABASE_URL=postgresql://jidelnicek:change-me-strong-password@127.0.0.1:5432/postgres" >> .env
+            echo "REDIS_URL=redis://127.0.0.1:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
@@ -60,15 +57,40 @@ jobs:
           uv pip install --system -e ../robotframework-talosforge
           uv pip install --system -e .[dev]
 
-      # 6. Spuštění databáze a redis z docker-compose
+      # 6. Spuštění databáze a redis z docker-compose na hostiteli
       - name: Start Infrastructure (DB & Redis)
         run: |
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 10
 
-      # 7. Spuštění testů (pytest teď uvidí DB přes host.docker.internal)
-      - name: Run pytest
-        run: pytest
+      # 7. Spuštění lokální proxy a následně samotného pytestu v jednom kroku
+      - name: Run pytest with local port forwarding
+        run: |
+          python3 -c "
+          import socket, threading, time
+          def pipe(s, d):
+              try:
+                  while True:
+                      data = s.recv(4096)
+                      if not data: break
+                      d.sendall(data)
+              except: pass
+          def proxy(port):
+              srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+              srv.bind(('127.0.0.1', port))
+              srv.listen(50)
+              while True:
+                  cli, _ = srv.accept()
+                  rem = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                  rem.connect(('host.docker.internal', port))
+                  threading.Thread(target=pipe, args=(cli, rem), daemon=True).start()
+                  threading.Thread(target=pipe, args=(rem, cli), daemon=True).start()
+          threading.Thread(target=proxy, args=(5432,), daemon=True).start()
+          threading.Thread(target=proxy, args=(6379,), daemon=True).start()
+          print('Background proxy for 5432 and 6379 is running...')
+          time.sleep(2)
+          " &
+          pytest
 
       # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
