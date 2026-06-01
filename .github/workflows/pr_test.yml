@@ -52,9 +52,9 @@ jobs:
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
-      # 5. Kompletní synchronizace závislostí včetně dev/test skupin
+      # 5. Kompletní instalace VČETNĚ [project.optional-dependencies] díky --all-extras
       - name: Install all dependencies
-        run: uv sync --all-groups
+        run: uv sync --all-extras --all-groups
 
       # 6. Spuštění databáze a redis z docker-compose
       - name: Start Infrastructure (DB & Redis)
@@ -62,9 +62,9 @@ jobs:
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 5
 
-      # 7. Spuštění testů - uv run teď natvrdo přibalí všechny balíčky i pro python modul
+      # 7. Spuštění testů (teď už tam pytest stoprocentně je)
       - name: Run pytest
-        run: uv run --all-groups python -m pytest
+        run: uv run python -m pytest
 
       # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
