@@ -10,11 +10,16 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
 from api.routers import auth, dishes, signups, summary, weeks
 from shared.config import get_settings
 from shared.db import get_engine
 from shared.schema_version import verify_schema_up_to_date
+
+# FR-O1: LAN traffic is fast, so the histogram buckets cluster at the low end
+# (5ms..1s) instead of Prometheus' web-scale defaults.
+_LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5)
 
 
 @asynccontextmanager
@@ -39,7 +44,28 @@ def create_app() -> FastAPI:
     app.include_router(dishes.router)
     app.include_router(signups.router)
     app.include_router(summary.router)
+
+    _instrument(app)
     return app
+
+
+def _instrument(app: FastAPI) -> None:
+    """FR-O1: expose `/metrics` in Prometheus format.
+
+    Labels are the templated route (`handler`), `method`, and `status` only —
+    no per-request paths or domain ids — so cardinality stays bounded (skill
+    rule 2). Business cardinality lives in the Grafana Postgres datasource, not
+    here. Series exposed: request count, latency histogram, in-flight gauge.
+    """
+    instrumentator = Instrumentator(
+        should_group_status_codes=False,
+        should_instrument_requests_inprogress=True,
+        inprogress_labels=True,
+        excluded_handlers=["/metrics"],
+    )
+    instrumentator.add(metrics.requests())
+    instrumentator.add(metrics.latency(buckets=_LATENCY_BUCKETS))
+    instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 app = create_app()
