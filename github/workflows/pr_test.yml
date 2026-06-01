@@ -1,0 +1,48 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run-all-tests:
+    name: Complete Test Suite (Unit, API & Browser E2E)
+    runs-on: ubuntu-latest
+    # Replace with your actual container image registry path once pushed
+    container: ghcr.io/your-github-username/jidelnicek-ci:latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare .env file
+        run: cp .env.example .env
+
+      - name: Start backing services (DB & Redis)
+        # We only spin up db and redis containers; the app itself runs in the host CI container
+        run: docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
+
+      - name: Run backend unit and integration tests
+        run: uv run pytest
+
+      - name: Run API and Frontend E2E tests
+        working-directory: ./
+        run: |
+          # 1. Install local frontend node_modules (fast, as pnpm is pre-installed)
+          cd web && pnpm install && cd ..
+          
+          # 2. Start the FastAPI backend service in the background
+          uv run uvicorn api.main:app --host 127.0.0.1 --port 8000 &
+          
+          # 3. Start the Frontend Vite dev server in the background
+          cd web && pnpm dev --host 127.0.0.1 --port 5173 &
+          cd ..
+          
+          # 4. Wait for both services to become available
+          sleep 8
+          
+          # 5. Run API acceptance tests
+          uv run robot --skiponfailure notready --outputdir results/robot-api tests/acceptance/suites
+          
+          # 6. Run Frontend Browser acceptance tests (using pre-baked Playwright)
+          uv run robot --skiponfailure notready --outputdir results/robot-fe tests/acceptance/suites/fe_*.robot
