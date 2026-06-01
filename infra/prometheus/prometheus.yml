@@ -4,8 +4,9 @@ global:
   external_labels:
     deployment: home
 
-# T-0.2 ships a minimal scrape config. The api job will report DOWN until
-# FR-O1 (`/metrics`) is implemented in EP-9 (T-9.1).
+# Minimal scrape config. The api job scrapes FR-O1 `/metrics` (implemented in
+# EP-9). If it reports DOWN with a 404, the running api image predates EP-9 —
+# rebuild it: `docker compose build api`.
 scrape_configs:
   - job_name: prometheus
     static_configs:
