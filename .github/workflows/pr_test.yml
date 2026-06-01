@@ -16,8 +16,11 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
 
+    # Tady předáme proměnné, které si tvůj upravený kód v testech přečte
     env:
       PYTHONPATH: .
+      DB_HOST: host.docker.internal
+      REDIS_HOST: host.docker.internal
 
     steps:
       # 1. Stažení hlavního projektu
@@ -36,7 +39,7 @@ jobs:
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru (pro jistotu, kdyby ho kód přece jen někde četl)
+      # 4. Příprava .env souboru pro nastartování docker-compose
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
@@ -46,8 +49,6 @@ jobs:
             echo "POSTGRES_DB=postgres" >> .env
             echo "POSTGRES_USER=jidelnicek" >> .env
             echo "POSTGRES_PASSWORD=change-me-strong-password" >> .env
-            echo "DATABASE_URL=postgresql://jidelnicek:change-me-strong-password@127.0.0.1:5432/postgres" >> .env
-            echo "REDIS_URL=redis://127.0.0.1:6379/0" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
@@ -63,34 +64,9 @@ jobs:
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 10
 
-      # 7. Spuštění lokální proxy a následně samotného pytestu v jednom kroku
-      - name: Run pytest with local port forwarding
-        run: |
-          python3 -c "
-          import socket, threading, time
-          def pipe(s, d):
-              try:
-                  while True:
-                      data = s.recv(4096)
-                      if not data: break
-                      d.sendall(data)
-              except: pass
-          def proxy(port):
-              srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-              srv.bind(('127.0.0.1', port))
-              srv.listen(50)
-              while True:
-                  cli, _ = srv.accept()
-                  rem = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                  rem.connect(('host.docker.internal', port))
-                  threading.Thread(target=pipe, args=(cli, rem), daemon=True).start()
-                  threading.Thread(target=pipe, args=(rem, cli), daemon=True).start()
-          threading.Thread(target=proxy, args=(5432,), daemon=True).start()
-          threading.Thread(target=proxy, args=(6379,), daemon=True).start()
-          print('Background proxy for 5432 and 6379 is running...')
-          time.sleep(2)
-          " &
-          pytest
+      # 7. Spuštění testů - čistě a bez hacků
+      - name: Run pytest
+        run: pytest
 
       # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
