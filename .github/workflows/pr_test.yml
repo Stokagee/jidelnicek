@@ -52,7 +52,7 @@ jobs:
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
-      # 5. Kompletní instalace VČETNĚ [project.optional-dependencies] díky --all-extras
+      # 5. Kompletní instalace z pyproject.toml včetně [project.optional-dependencies] dev skupiny
       - name: Install all dependencies
         run: uv sync --all-extras --all-groups
 
@@ -62,9 +62,9 @@ jobs:
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 5
 
-      # 7. Spuštění testů (teď už tam pytest stoprocentně je)
+      # 7. Spuštění testů přímo přes nainstalovaný binár z .venv (obcházíme uv run izolaci)
       - name: Run pytest
-        run: uv run python -m pytest
+        run: .venv/bin/pytest
 
       # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
