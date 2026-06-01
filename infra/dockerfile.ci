@@ -1,0 +1,30 @@
+FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Oficiální instalátor přímo od Dockeru (nainstaluje docker i docker compose bez chyb)
+RUN curl -fsSL https://get.docker.com | sh
+
+# Install uv and pnpm globally
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN npm install -g pnpm@9
+
+WORKDIR /ci
+
+# Copy only dependency definitions to leverage Docker layer caching
+COPY pyproject.toml uv.lock README.md ./
+
+# Install python dependencies
+RUN uv sync --frozen
+
+# Explicitly install robotframework-browser into the venv to bypass workspace restrictions
+RUN uv pip install --python .venv robotframework-browser
+
+# Install Playwright browser binaries and their OS dependencies directly into the image
+RUN .venv/bin/rfbrowser init

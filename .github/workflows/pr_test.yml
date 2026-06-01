@@ -1,0 +1,71 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    container:
+      image: ghcr.io/stokagee/jidelnicek-ci:latest
+      options: --user root --add-host=host.docker.internal:host-gateway
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+
+    env:
+      PYTHONPATH: .
+      DB_HOST: host.docker.internal
+
+    steps:
+      - name: Checkout jidelnicek
+        uses: actions/checkout@v4
+
+      - name: Checkout robotframework-talosforge (temp)
+        uses: actions/checkout@v4
+        with:
+          repository: stokagee/robotframework-talosforge
+          path: talosforge_tmp
+
+      - name: Move talosforge to sibling directory
+        run: |
+          mv talosforge_tmp ../robotframework-talosforge
+
+      - name: Create .env file
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            echo "POSTGRES_DB=postgres" >> .env
+            echo "POSTGRES_USER=jidelnicek" >> .env
+            echo "POSTGRES_PASSWORD=change-me-strong-password" >> .env
+          fi
+          
+          # Replace any hardcoded local addresses inherited from the template
+          sed -i 's/127.0.0.1/host.docker.internal/g' .env
+          sed -i 's/localhost/host.docker.internal/g' .env
+          
+          # Explicitly append and enforce correct CI parameters
+          echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
+          echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
+          echo "DB_HOST=host.docker.internal" >> .env
+
+      - name: Install dependencies into container system
+        run: |
+          uv pip install --system -e ../robotframework-talosforge
+          uv pip install --system -e .[dev]
+
+      - name: Start Infrastructure (DB & Redis)
+        run: |
+          docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
+          sleep 10
+
+      - name: Run pytest
+        run: pytest
+
+      - name: Stop Infrastructure
+        if: always()
+        run: docker compose -f infra/docker-compose.yml --env-file .env down

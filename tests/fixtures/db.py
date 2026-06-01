@@ -12,9 +12,13 @@ native enums. Those are Postgres-only, so tests must run against Postgres.
 
 Connection resolution order:
   1. `TEST_DATABASE_URL` (explicit, wins).
-  2. Derived from `DATABASE_URL`: host `db` → `localhost` (tests run on the host,
-     not inside the compose network) and database name suffixed with `_test`.
-  3. A local default matching `.env.example`.
+  2. Derived from `DATABASE_URL`: host swapped for `DB_HOST` (or `127.0.0.1` when
+     unset, since tests run on the host, not inside the compose network) and
+     database name suffixed with `_test`.
+  3. A local default matching `.env.example`, with the host taken from `DB_HOST`.
+
+`DB_HOST` lets the same test code run inside a container (e.g. pointed at a `db`
+service or a host IP) while keeping `127.0.0.1` as the local default.
 """
 
 from __future__ import annotations
@@ -34,9 +38,7 @@ _ALEMBIC_INI = REPO_ROOT / "shared" / "alembic.ini"
 # 127.0.0.1, not "localhost": on Windows "localhost" resolves to IPv6 ::1 first
 # and adds a multi-second connect penalty per connection before falling back to
 # IPv4 — which makes the per-test connects look like a hang.
-_DEFAULT_TEST_URL = (
-    "postgresql+psycopg://jidelnicek:change-me-strong-password@127.0.0.1:5432/jidelnicek_test"
-)
+_DEFAULT_DB_HOST = "127.0.0.1"
 
 
 def test_database_url() -> str:
@@ -45,16 +47,21 @@ def test_database_url() -> str:
     if explicit:
         return explicit
 
+    db_host = os.environ.get("DB_HOST", _DEFAULT_DB_HOST)
+
     base = os.environ.get("DATABASE_URL")
     if base:
         url = make_url(base)
-        # Tests run on the host, not inside the compose network; force IPv4 to
-        # avoid the Windows "localhost"→::1 connect penalty (see _DEFAULT_TEST_URL).
-        host = "127.0.0.1" if url.host in (None, "db", "localhost") else url.host
+        if "DB_HOST" in os.environ:
+            host = db_host
+        else:
+            # Tests run on the host, not inside the compose network; force IPv4 to
+            # avoid the Windows "localhost"→::1 connect penalty (see _DEFAULT_DB_HOST).
+            host = _DEFAULT_DB_HOST if url.host in (None, "db", "localhost") else url.host
         db_name = f"{url.database or 'jidelnicek'}_test"
         return url.set(host=host, database=db_name).render_as_string(hide_password=False)
 
-    return _DEFAULT_TEST_URL
+    return f"postgresql+psycopg://jidelnicek:change-me-strong-password@{db_host}:5432/jidelnicek_test"
 
 
 def _ensure_database(url_str: str) -> None:
