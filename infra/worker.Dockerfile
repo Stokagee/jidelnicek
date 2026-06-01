@@ -11,7 +11,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /usr/local/bin/uv
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
+# README.md is required by hatchling when `uv sync` builds the local package.
+COPY pyproject.toml uv.lock README.md ./
 COPY api/__init__.py api/__init__.py
 COPY worker/__init__.py worker/__init__.py
 COPY shared/__init__.py shared/__init__.py
@@ -21,5 +22,6 @@ RUN uv sync --frozen --no-dev
 COPY worker/ worker/
 COPY shared/ shared/
 
-# T-0.2 placeholder: real arq settings/tasks come in EP-8.
-CMD ["uv", "run", "worker"]
+# --frozen --no-dev: skip runtime re-resolve and the dev-only editable TalosForge
+# path (absent from the image); see api.Dockerfile.
+CMD ["uv", "run", "--frozen", "--no-dev", "worker"]

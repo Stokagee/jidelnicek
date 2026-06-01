@@ -41,14 +41,34 @@ services:
       timeout: 3s
       retries: 20
 
+  # One-shot: bring the schema up to head before api/worker start. api refuses
+  # to serve against a behind database (issue #69), so a fresh `up` on an empty
+  # volume needs this. Reuses the api image (alembic + shared/ are already in it).
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-jidelnicek}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-jidelnicek}
+      TZ: ${TZ:-Europe/Prague}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["uv", "run", "--frozen", "--no-dev", "alembic", "-c", "shared/alembic.ini", "upgrade", "head"]
+
   api:
     build:
       context: ..
       dockerfile: infra/api.Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # In-network hostnames are fixed (db/redis), independent of the host-side
+      # DATABASE_URL/REDIS_URL in .env — those legitimately point at localhost/
+      # 127.0.0.1 for host-run pytest. Built from the same credential parts so a
+      # password change in .env still propagates here.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-jidelnicek}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-jidelnicek}
+      REDIS_URL: redis://redis:6379/0
       API_HOST: 0.0.0.0
       API_PORT: ${API_PORT:-8000}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
@@ -59,6 +79,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "${HOST_BIND:-0.0.0.0}:${API_PORT:-8000}:8000"
     healthcheck:
@@ -73,8 +95,9 @@ services:
       dockerfile: infra/worker.Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # See the api service: pin in-network hostnames, keep credentials from .env.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-jidelnicek}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-jidelnicek}
+      REDIS_URL: redis://redis:6379/0
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       DIGEST_INTERVAL_HOURS: ${DIGEST_INTERVAL_HOURS:-6}
       TZ: ${TZ:-Europe/Prague}
@@ -83,6 +106,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   web:
     build:
