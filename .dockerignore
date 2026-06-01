@@ -21,7 +21,8 @@ web/dist
 .claude
 docs
 tests
-README.md
+# README.md is NOT ignored: hatchling reads it (pyproject `readme`) when it
+# builds the local `jidelnicek` package during `uv sync` in the image build.
 CLAUDE.md
 jidelnicek-docs-v1.md
 claude-code-bootstrap-prompt.md
