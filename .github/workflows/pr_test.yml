@@ -37,17 +37,19 @@ jobs:
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru pro infrastrukturu
+      # 4. Příprava .env souboru (včetně chybějícího SESSION_SECRET)
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
+            echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           else
             echo "POSTGRES_DB=jidelnicek" >> .env
             echo "POSTGRES_USER=postgres" >> .env
             echo "POSTGRES_PASSWORD=postgres" >> .env
             echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/jidelnicek" >> .env
             echo "REDIS_URL=redis://localhost:6379/0" >> .env
+            echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
           fi
 
       # 5. Kompletní synchronizace závislostí včetně dev/test skupin
@@ -64,7 +66,7 @@ jobs:
       - name: Run pytest
         run: uv run python -m pytest
 
-      # 8. Vyčištění kontejnerů po testech
+      # 8. Vyčištění kontejnerů po testech (opraveno o --env-file)
       - name: Stop Infrastructure
         if: always()
-        run: docker compose -f infra/docker-compose.yml down
+        run: docker compose -f infra/docker-compose.yml --env-file .env down
