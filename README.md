@@ -100,6 +100,12 @@ The locked product spec (single source of truth) lives in [`jidelnicek-docs-v1.m
    uv run seed
    ```
 
+> **Migrations are not optional.** The API verifies at startup that the database
+> is on the latest Alembic revision and refuses to start otherwise (issue #69) —
+> so after pulling changes that add a migration, run step 6 again before starting
+> the api, or you'll get a clear `Database schema is out of date` error instead of
+> a confusing 500 mid-request.
+
 The web app is at <http://localhost:5173>, the API at <http://localhost:8000>, Prometheus at <http://localhost:9090>, and Grafana at <http://localhost:3000>.
 
 ---

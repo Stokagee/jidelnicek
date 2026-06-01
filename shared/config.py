@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     session_max_age: int = 14 * 24 * 3600
     # FR-N5: single Discord webhook for the cook's alerts + digest. Empty = log only.
     discord_webhook_url: str = ""
+    # Issue #69: fail fast at startup if the DB is behind the code's Alembic head.
+    # Disabled in the test suite, which manages its own migrated DB per session.
+    verify_schema_on_startup: bool = True
 
 
 @lru_cache

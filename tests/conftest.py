@@ -7,6 +7,7 @@ are available under `uv run pytest`), and re-exports every fixture from
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -23,6 +24,11 @@ try:
     load_dotenv(override=False)
 except ImportError:
     pass
+
+# Issue #69: the TestClient enters the app lifespan, which would otherwise probe
+# the *dev* DB for schema drift. The suite manages its own migrated test DB, so
+# turn the startup guard off here (set before `get_settings()` is first cached).
+os.environ["VERIFY_SCHEMA_ON_STARTUP"] = "false"
 
 from tests.fixtures.db import db_session, engine  # noqa: E402,F401
 from tests.fixtures.factories import (  # noqa: E402,F401
