@@ -10,16 +10,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv and pnpm globally
-COPY --from=astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN npm install -g pnpm@9
 
 WORKDIR /ci
 
 # Copy only dependency definitions to leverage Docker layer caching
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock README.md ./
 
-# Install python dependencies including dev extras for Browser Library
+# Install python dependencies
 RUN uv sync --frozen
 
+# Explicitly install robotframework-browser into the venv to bypass workspace restrictions
+RUN uv pip install --python .venv robotframework-browser
+
 # Install Playwright browser binaries and their OS dependencies directly into the image
-RUN uv run rfbrowser init
+RUN .venv/bin/rfbrowser init
