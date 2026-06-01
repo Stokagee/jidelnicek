@@ -16,59 +16,51 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
 
-    # Tady předáme proměnné, které si tvůj upravený kód v testech přečte
     env:
       PYTHONPATH: .
       DB_HOST: host.docker.internal
-      REDIS_HOST: host.docker.internal
 
     steps:
-      # 1. Stažení hlavního projektu
       - name: Checkout jidelnicek
         uses: actions/checkout@v4
 
-      # 2. Stažení vedlejšího repozitáře do dočasné složky
       - name: Checkout robotframework-talosforge (temp)
         uses: actions/checkout@v4
         with:
           repository: stokagee/robotframework-talosforge
           path: talosforge_tmp
 
-      # 3. Přesun o úroveň výš, aby seděly cesty z pyproject.toml
       - name: Move talosforge to sibling directory
         run: |
           mv talosforge_tmp ../robotframework-talosforge
 
-      # 4. Příprava .env souboru pro nastartování docker-compose
       - name: Create .env file
         run: |
           if [ -f .env.example ]; then
             cp .env.example .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
+            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
           else
             echo "POSTGRES_DB=postgres" >> .env
             echo "POSTGRES_USER=jidelnicek" >> .env
             echo "POSTGRES_PASSWORD=change-me-strong-password" >> .env
             echo "SESSION_SECRET=ci_test_secret_key_123_abc" >> .env
+            echo "REDIS_URL=redis://host.docker.internal:6379/0" >> .env
           fi
 
-      # 5. Instalace balíčků přímo do systému kontejneru
       - name: Install dependencies into container system
         run: |
           uv pip install --system -e ../robotframework-talosforge
           uv pip install --system -e .[dev]
 
-      # 6. Spuštění databáze a redis z docker-compose na hostiteli
       - name: Start Infrastructure (DB & Redis)
         run: |
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 10
 
-      # 7. Spuštění testů - čistě a bez hacků
       - name: Run pytest
         run: pytest
 
-      # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml --env-file .env down
