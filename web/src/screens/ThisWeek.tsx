@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../api/auth'
 import { getCurrentWeek } from '../api/weeks'
 import type { Week } from '../api/types'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { canEdit, canPropose } from '../domain/dishBlock'
 import { cs } from '../i18n/cs'
 import { useAuth } from '../auth/useAuth'
@@ -39,12 +40,26 @@ export function ThisWeek() {
         <p>
           {cs.home.loggedInAs} <strong>{me?.name}</strong>
         </p>
-        <button data-testid="logout" type="button" onClick={onLogout}>
-          {cs.home.logout}
-        </button>
+        <div className="header-actions">
+          <ThemeToggle />
+          <button data-testid="logout" type="button" onClick={onLogout}>
+            {cs.home.logout}
+          </button>
+        </div>
       </header>
 
       <h1>{cs.thisWeek.title}</h1>
+
+      {/* Show the chooser their assigned days */}
+      {week && me && !me.is_admin && week.chooser_id === me.id && week.chooser_start_date && (
+        <p className="chooser-days-info" data-testid="chooser-days-info">
+          {cs.thisWeek.yourDays}{' '}
+          <strong>{week.chooser_start_date}</strong>
+          {week.chooser_end_date && week.chooser_end_date !== week.chooser_start_date && (
+            <> – <strong>{week.chooser_end_date}</strong></>
+          )}
+        </p>
+      )}
 
       <nav className="actions">
         {me?.is_admin && (

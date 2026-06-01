@@ -82,6 +82,8 @@ def get_current_week(_user: CurrentUser, session: SessionDep) -> WeekResponse:
         id=week.id,
         start_date=week.start_date,
         chooser_id=week.chooser_id,
+        chooser_start_date=week.chooser_start_date,
+        chooser_end_date=week.chooser_end_date,
         dishes=_dishes_with_signups(session, week.id),
     )
 
@@ -90,15 +92,19 @@ def get_current_week(_user: CurrentUser, session: SessionDep) -> WeekResponse:
 def set_chooser(
     week_id: int, body: SetChooserRequest, _admin: AdminUser, session: SessionDep
 ) -> WeekResponse:
-    """FR-W2/FR-W3 (BR-1): admin sets/changes the week's chooser. Admin only."""
+    """FR-W2/FR-W3 (BR-1): admin sets/changes the week's chooser and their days."""
     week = session.get(Week, week_id)
     if week is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Week not found")
     week.chooser_id = body.chooser_id  # BR-1: pure mechanism, no policy.
+    week.chooser_start_date = body.chooser_start_date
+    week.chooser_end_date = body.chooser_end_date
     session.commit()
     return WeekResponse(
         id=week.id,
         start_date=week.start_date,
         chooser_id=week.chooser_id,
+        chooser_start_date=week.chooser_start_date,
+        chooser_end_date=week.chooser_end_date,
         dishes=_dishes_with_signups(session, week.id),
     )

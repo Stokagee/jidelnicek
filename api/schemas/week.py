@@ -13,6 +13,9 @@ from api.schemas.signup import SignupWithUserName
 class SetChooserRequest(BaseModel):
     # BR-1 mechanism: who chooses dishes this week. No policy here.
     chooser_id: int
+    # Which days of the week the chooser handles (optional sub-range).
+    chooser_start_date: date | None = None
+    chooser_end_date: date | None = None
 
 
 class DishWithSignupsResponse(DishResponse):
@@ -27,4 +30,6 @@ class WeekResponse(BaseModel):
     id: int
     start_date: date
     chooser_id: int | None
+    chooser_start_date: date | None
+    chooser_end_date: date | None
     dishes: list[DishWithSignupsResponse] = []

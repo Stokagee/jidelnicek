@@ -10,6 +10,14 @@ export const cs = {
     submit: 'Odeslat',
     loading: 'Načítání…',
     genericError: 'Něco se pokazilo. Zkus to prosím znovu.',
+    back: '← Zpět',
+  },
+  theme: {
+    dark: 'Tmavý',
+    light: 'Světlý',
+  },
+  days: {
+    short: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
   },
   claim: {
     title: 'Nastavení účtu',
@@ -33,32 +41,34 @@ export const cs = {
     signup: 'Přihlásit se',
     edit: 'Upravit',
     cookSummaryLink: 'Souhrn kuchaře',
-    // Member-facing "who is signed up / portion totals" arrives once the BE adds
-    // those endpoints (#53); until then this screen lists dishes and links to signup.
+    yourDays: 'Tvoje dny jako volitel:',
   },
   cookSummary: {
     title: 'Souhrn kuchaře',
-    dayLabel: 'Den:',
     portionsUnit: '×',
-    noSignups: 'Na tento den nikdo není přihlášen.',
+    noSignups: '—',
     createDish: 'Založit jídlo',
     chooser: {
       currentLabel: 'Volitel týdne:',
       notSet: 'Zatím není nastaven',
+      daysLabel: 'Dny volitele:',
       placeholder: '— vyberte volitele —',
-      saveButton: 'Nastav volitele',
+      setButton: 'Nastav volitele',
+      confirmButton: 'Potvrdit',
+      cancelButton: 'Zrušit',
       saved: 'Volitel nastaven.',
       unknown: 'Neznámý uživatel',
     },
   },
   signup: {
     title: 'Přihláška na jídlo',
-    pickDay: 'Vyber den z bloku jídla:',
+    pickDay: 'Vyber dny z bloku jídla:',
     portionsLabel: 'Počet porcí',
     submit: 'Přihlásit se',
     cancel: 'Zrušit přihlášku',
+    cancelAll: 'Zrušit vše',
     signedUp: 'Přihlášeno.',
-    noDay: 'Vyber prosím den.',
+    noDay: 'Vyber prosím aspoň jeden den.',
     invalidPortions: 'Počet porcí musí být alespoň 1.',
     invalidDay: 'Tento den není v bloku jídla.',
   },
@@ -73,6 +83,9 @@ export const cs = {
     delete: 'Smazat jídlo',
     invalidBlock: 'Konec bloku nesmí být před začátkem.',
     forbidden: 'Jídlo smí přidat jen kuchař nebo volitel týdne.',
+    blockPickerLabel: 'Vyber blok dní pro jídlo',
+    blockFrom: 'Od:',
+    blockTo: 'do:',
   },
 } as const
 

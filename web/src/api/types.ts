@@ -16,6 +16,15 @@ export interface User {
   is_admin: boolean
 }
 
+/** Per-dish signup entry embedded in WeekResponse (FR-K3). */
+export interface SignupInWeek {
+  id: number
+  user_id: number
+  user_name: string | null
+  day: string
+  portions: number
+}
+
 export interface Dish {
   id: number
   week_id: number
@@ -29,11 +38,17 @@ export interface Dish {
   end_date: string
 }
 
+export interface DishWithSignups extends Dish {
+  signups: SignupInWeek[]
+}
+
 export interface Week {
   id: number
   start_date: string
   chooser_id: number | null
-  dishes: Dish[]
+  chooser_start_date: string | null
+  chooser_end_date: string | null
+  dishes: DishWithSignups[]
 }
 
 export interface Signup {

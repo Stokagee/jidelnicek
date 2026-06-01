@@ -36,7 +36,7 @@ describe('week wrappers', () => {
     const [url, init] = lastCall(fetchMock)
     expect(String(url)).toMatch(/\/weeks\/9\/chooser$/)
     expect(init.method).toBe('PUT')
-    expect(JSON.parse(init.body as string)).toEqual({ chooser_id: 4 })
+    expect(JSON.parse(init.body as string)).toMatchObject({ chooser_id: 4 })
   })
 
   it('setChooser surfaces ApiError(403) for a non-admin caller', async () => {

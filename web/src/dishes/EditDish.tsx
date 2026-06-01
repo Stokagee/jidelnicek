@@ -46,6 +46,9 @@ export function EditDish() {
   }
 
   const { min, max } = weekRange(week!.start_date)
+  const todayPrague = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(
+    new Date(),
+  )
 
   async function onSubmit(values: DishFormValues) {
     setError(null)
@@ -80,6 +83,7 @@ export function EditDish() {
     <DishForm
       title={cs.dish.editTitle}
       initial={{ name: dish.name, start_date: dish.start_date, end_date: dish.end_date }}
+      startIso={todayPrague}
       minDate={min}
       maxDate={max}
       error={error}
@@ -87,6 +91,7 @@ export function EditDish() {
       onSubmit={onSubmit}
       onDelete={onDelete}
       deleting={deleting}
+      onBack={() => navigate(-1)}
     />
   )
 }
