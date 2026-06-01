@@ -9,7 +9,7 @@ jobs:
     name: Complete Test Suite (Unit, API & Browser E2E)
     runs-on: ubuntu-latest
     # Replace with your actual container image registry path once pushed
-    container: ghcr.io/your-github-username/jidelnicek-ci:latest
+    container: ghcr.io/stokagee/jidelnicek-ci:latest
     
     steps:
       - name: Checkout repository
