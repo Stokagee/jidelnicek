@@ -62,11 +62,11 @@ jobs:
           docker compose -f infra/docker-compose.yml --env-file .env up -d db redis
           sleep 5
 
-      # 7. Spuštění testů bezpečně přes modul pythonu
+      # 7. Spuštění testů přímo z připraveného .venv, kde pytest už je
       - name: Run pytest
-        run: uv run python -m pytest
+        run: .venv/bin/python -m pytest
 
-      # 8. Vyčištění kontejnerů po testech (opraveno o --env-file)
+      # 8. Vyčištění kontejnerů po testech
       - name: Stop Infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml --env-file .env down
