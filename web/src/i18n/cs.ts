@@ -81,6 +81,8 @@ export const cs = {
     endLabel: 'Do (den)',
     submit: 'Uložit jídlo',
     delete: 'Smazat jídlo',
+    nameRequired: 'Zadej název jídla.',
+    noDay: 'Vyber prosím aspoň jeden den.',
     invalidBlock: 'Konec bloku nesmí být před začátkem.',
     forbidden: 'Jídlo smí přidat jen kuchař nebo volitel týdne.',
     blockPickerLabel: 'Vyber blok dní pro jídlo',
