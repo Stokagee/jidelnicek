@@ -72,3 +72,47 @@ IDOR Insecure Direct Object Reference
     Login As Admin
     ${delete_dish_response}=    Delete The Dish    ${dish_json}[id]
     Should Be True    ${delete_dish_response.status_code} == 200    msg=Delete dish failed with status code ${delete_dish_response.status_code}
+
+Deleting a dish by an external selector (DELETE /dishes/{dish_id})
+    [Documentation]    Here, we are testing whether a user can delete a dish that they did not create simply by guessing or forging the dish ID.
+    ${response_admin_login}=    Login    ${ADMIN_NAME}    ${ADMIN_PASSWORD}
+    Should Be True    ${response_admin_login.status_code} == 200    msg=Admin login failed with status code ${response_admin_login.status_code}
+
+    VAR    ${json}    ${response_admin_login.json()}
+
+    Should Be True    ${json}[is_admin]    msg=Admin login did not return is_admin=True
+
+    ${response_current_week}=    Get Current Week
+    Should Be True    ${response_current_week.status_code} == 200    msg=Get current week failed with status code ${response_current_week.status_code}
+
+    VAR    ${json}    ${response_current_week.json()}
+
+    ${set_chooser_response}=    Set Chooser    week_id=${json}[id]    chooser_id=2
+    Should Be True    ${set_chooser_response.status_code} == 200    msg=Set chooser failed with status code ${set_chooser_response.status_code}
+
+    ${user_2_response}=    Login    ${USER_2_NAME}    ${USER_2_PASSWORD}
+    Should Be True    ${user_2_response.status_code} == 200    msg=User 2 login failed with status code ${user_2_response.status_code}
+
+    VAR    ${json_user_2}    ${user_2_response.json()}
+
+    Should Be Equal As Strings    ${json_user_2}[name]    Kateřina    msg=User 2 login did not return expected name
+    Should Be True    ${json_user_2}[is_admin] == False    msg=User 2 login did not return is_admin=False
+
+    ${response_create_dish}=    Create Dish    week_id=${json}[id]    name=${dish_name}    start_date=${start_day}    end_date=${end_day}
+    Should Be True    ${response_create_dish.status_code} == 201    msg=Create dish failed with status code ${response_create_dish.status_code}
+
+    VAR   ${dish_json}    ${response_create_dish.json()}
+    Should Be Equal As Strings   ${dish_json}[name]    ${dish_name}    msg=Dish name in response does not match request
+    Should Be Equal As Strings   ${dish_json}[start_date]    ${start_day}    msg=Dish start date in response does not match request
+
+    Logout
+
+    ${user_3_response}=    Login    ${USER_3_NAME}    ${USER_3_PASSWORD}
+    Should Be True    ${user_3_response.status_code} == 200    msg=User 3 login failed with status code ${user_3_response.status_code}
+
+    VAR    ${json_user_3}    ${user_3_response.json()}
+
+    ${delete_dish_response}=    Delete The Dish    ${dish_json}[id]
+    Should Not Be True    ${delete_dish_response.status_code} == 200    msg=Delete dish succeeded with status code ${delete_dish_response.status_code}, but should have failed due to lack of permissions
+    Logout
+
