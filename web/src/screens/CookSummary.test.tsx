@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppRoutes } from '../App'
+import { cs } from '../i18n/cs'
 import { renderWithProviders } from '../test/render'
 import { makeDish, makeMe, makeUser, makeWeek, mockFetch } from '../test/fixtures'
 
@@ -113,6 +114,29 @@ describe('CookSummary (§14.5, AC-4)', () => {
     const current = await screen.findByTestId('chooser-current')
     expect(current).toHaveTextContent('5. 1. – 11. 1.')
     expect(current).not.toHaveTextContent('2026-01-05')
+  })
+
+  it('admin button gives everyone permission, which PUTs /settings (#77)', async () => {
+    const fetchMock = mockFetch([
+      { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+      { path: '/weeks/current', body: makeWeek({ id: 9, start_date: '2026-01-05' }) },
+      { path: '/users', body: twoMembers() },
+      { method: 'GET', path: '/settings', body: { open_choosing: false } },
+      { method: 'PUT', path: '/settings', body: { open_choosing: true } },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
+
+    const button = (await screen.findByTestId('open-choosing-button')) as HTMLButtonElement
+    expect(button).toHaveTextContent(cs.cookSummary.openChoosing.enable)
+    await userEvent.click(button)
+
+    const putBody = (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.calls
+      .filter((c) => (c[1] as RequestInit)?.method === 'PUT')
+      .map((c) => JSON.parse((c[1] as RequestInit).body as string))
+    expect(putBody).toEqual([{ open_choosing: true }])
+    // Now on: the button flips to the "turn it off" label (it can be toggled back).
+    await vi.waitFor(() => expect(button).toHaveTextContent(cs.cookSummary.openChoosing.disable))
   })
 
   it('admin picks chooser, opens day picker, confirms and sees saved (FR-W2, T-4.3)', async () => {

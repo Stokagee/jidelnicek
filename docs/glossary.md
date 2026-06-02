@@ -16,6 +16,7 @@ If you encounter a Czech identifier from the spec that is not listed here, **add
 | blok | block | A dish's `start_date`–`end_date` range. |
 | slot `obed` | slot `lunch` | V1 default and only used value. |
 | slot `vecere` | slot `dinner` | Present in enum for forward-compat; no logic in V1. |
+| (volný výběr / „všichni můžou zakládat") | `open_choosing` | Post-V1 toggle (#77): when on, anyone may create dishes permanently (relaxes BR-6). Unrelated to the 30-day horizon (#80). |
 | porce | portion | Per-day count, ≥ 1 (BR-4). |
 | outbox | outbox | The `notifications` table — also the durability mechanism (FR-N2). |
 | catch-up | catch-up | Recovering a missed 6h digest after PC wake (FR-N4). |
@@ -30,6 +31,7 @@ If you encounter a Czech identifier from the spec that is not listed here, **add
 | přihlášky | `signups` |
 | notifikace | `notifications` |
 | stav plánovače | `scheduler_state` |
+| nastavení (instalace) | `app_settings` |
 
 ## Columns
 

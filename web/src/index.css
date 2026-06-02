@@ -708,6 +708,21 @@ button.danger:hover:not(:disabled) {
   padding: 6px 12px;
 }
 
+/* open-choosing button (#77) */
+.open-choosing {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.open-choosing-hint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
+}
+
 /* ─── dark mode ────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {

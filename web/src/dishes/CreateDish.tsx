@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import type { Week } from '../api/types'
 import { createDish } from '../api/dishes'
+import { getSettings } from '../api/settings'
 import { getCurrentWeek } from '../api/weeks'
 import { useAuth } from '../auth/useAuth'
 import { canPropose } from '../domain/dishBlock'
@@ -19,14 +20,22 @@ export function CreateDish() {
   const navigate = useNavigate()
   const { me } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
+  const [openChoosing, setOpenChoosing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    getCurrentWeek()
-      .then(setWeek)
-      .catch(() => setWeek(null))
+    Promise.all([
+      getCurrentWeek().catch((): Week | null => null),
+      getSettings()
+        .then((s) => s.open_choosing)
+        .catch(() => false),
+    ])
+      .then(([w, open]) => {
+        setWeek(w)
+        setOpenChoosing(open)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -37,7 +46,8 @@ export function CreateDish() {
       </p>
     )
   }
-  if (!week || !canPropose(me, week)) {
+  // #77: when open choosing is on, anyone may create; otherwise BR-6 (admin/chooser).
+  if (!week || (!openChoosing && !canPropose(me, week))) {
     return <Navigate to="/" replace />
   }
 

@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
+from api.app_settings import get_app_settings
 from api.deps import CurrentUser, SessionDep
 from api.outbox import write_notification
 from api.schemas.dish import DishCreate, DishResponse, DishUpdate
@@ -50,14 +51,16 @@ def _admin_id(session: SessionDep) -> int | None:
 def create_dish(body: DishCreate, user: CurrentUser, session: SessionDep) -> DishResponse:
     """FR-D1/FR-D2: create a dish (name + day block) for a week.
 
-    BR-6: only the admin or the week's chooser may create a dish in that week.
+    BR-6: only the admin or the week's chooser may create a dish — unless the
+    `open_choosing` button is on (#77), which lets anyone create, permanently.
     """
     week = session.get(Week, body.week_id)
     if week is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Week not found")
 
-    # BR-6: admin or chooser-of-week.
-    if not user.is_cook and week.chooser_id != user.id:
+    # BR-6, unless the admin turned open choosing on (#77: everyone, for good).
+    open_choosing = get_app_settings(session).open_choosing
+    if not open_choosing and not user.is_cook and week.chooser_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin or week chooser may add dishes",
@@ -73,8 +76,8 @@ def create_dish(body: DishCreate, user: CurrentUser, session: SessionDep) -> Dis
         week_id=week.id,
         name=body.name,
         proposed_by_id=user.id,
-        # FR-D3/§11: cook is always the admin in V1 (falls back to the proposer when
-        # no admin exists, e.g. in isolated tests); slot defaults to lunch (model).
+        # FR-D3/§11: cook is always the admin (falls back to the proposer when no
+        # admin exists, e.g. in isolated tests); slot stays lunch (model default).
         cook_id=_admin_id(session) or user.id,
         start_date=body.start_date,
         end_date=body.end_date,

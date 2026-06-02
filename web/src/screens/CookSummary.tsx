@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import type { DishWithSignups, User, Week } from '../api/types'
 import { getUsers } from '../api/auth'
+import { getSettings, setOpenChoosing } from '../api/settings'
 import { getCurrentWeek, setChooser } from '../api/weeks'
 import { BlockPicker } from '../components/BlockPicker'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -41,6 +42,10 @@ export function CookSummary() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
+  // #77: open-choosing toggle (admin flips it here).
+  const [openChoosing, setOpen] = useState(false)
+  const [openSaving, setOpenSaving] = useState(false)
+
   // Chooser flow state
   const [pendingChooserId, setPendingChooserId] = useState<number | ''>('')
   const [showDayPicker, setShowDayPicker] = useState(false)
@@ -50,10 +55,17 @@ export function CookSummary() {
   const [chooserSaving, setChooserSaving] = useState(false)
 
   useEffect(() => {
-    Promise.all([getCurrentWeek(), getUsers().catch((): User[] => [])])
-      .then(([w, us]) => {
+    Promise.all([
+      getCurrentWeek(),
+      getUsers().catch((): User[] => []),
+      getSettings()
+        .then((s) => s.open_choosing)
+        .catch(() => false),
+    ])
+      .then(([w, us, open]) => {
         setWeek(w)
         setUsers(us)
+        setOpen(open)
         setPendingChooserId(w.chooser_id ?? '')
         // Pre-fill chooser days from saved range
         if (w.chooser_start_date && w.chooser_end_date) {
@@ -93,6 +105,18 @@ export function CookSummary() {
     }
   }
 
+  async function onToggleOpenChoosing(next: boolean) {
+    setOpenSaving(true)
+    try {
+      const updated = await setOpenChoosing(next)
+      setOpen(updated.open_choosing)
+    } catch {
+      // leave state unchanged on failure
+    } finally {
+      setOpenSaving(false)
+    }
+  }
+
   if (!me?.is_admin) {
     return <Navigate to="/" replace />
   }
@@ -129,6 +153,21 @@ export function CookSummary() {
           {cs.cookSummary.createDish}
         </Link>
       </nav>
+
+      {/* #77: one button that permanently lets everyone create dishes. */}
+      <section className="open-choosing" data-testid="open-choosing-section">
+        <button
+          type="button"
+          data-testid="open-choosing-button"
+          disabled={openSaving}
+          onClick={() => onToggleOpenChoosing(!openChoosing)}
+        >
+          {openChoosing
+            ? cs.cookSummary.openChoosing.disable
+            : cs.cookSummary.openChoosing.enable}
+        </button>
+        <p className="open-choosing-hint">{cs.cookSummary.openChoosing.hint}</p>
+      </section>
 
       {/* Week table: rows = dishes, columns = days */}
       <div className="week-table-wrap">

@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
-from api.routers import auth, dishes, signups, summary, weeks
+from api.routers import auth, dishes, settings, signups, summary, weeks
 from shared.config import get_settings
 from shared.db import get_engine
 from shared.schema_version import verify_schema_up_to_date
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     app.include_router(dishes.router)
     app.include_router(signups.router)
     app.include_router(summary.router)
+    app.include_router(settings.router)
 
     _instrument(app)
     return app

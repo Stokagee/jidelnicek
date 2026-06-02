@@ -52,6 +52,11 @@ export const cs = {
     portionsUnit: '×',
     noSignups: '—',
     createDish: 'Založit jídlo',
+    openChoosing: {
+      enable: 'Povolit všem zakládat jídla',
+      disable: 'Zrušit – zakládá jen kuchař a volitel',
+      hint: 'Když je zapnuto, jídla může zakládat kdokoliv. Když vypnuto, jen kuchař a volitel týdne.',
+    },
     chooser: {
       currentLabel: 'Volitel týdne:',
       notSet: 'Zatím není nastaven',

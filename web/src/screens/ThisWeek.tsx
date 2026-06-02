@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../api/auth'
+import { getSettings } from '../api/settings'
 import { getCurrentWeek } from '../api/weeks'
 import type { Week } from '../api/types'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -18,6 +19,7 @@ export function ThisWeek() {
   const navigate = useNavigate()
   const { me, setMe } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
+  const [openChoosing, setOpenChoosing] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,6 +27,10 @@ export function ThisWeek() {
       .then(setWeek)
       .catch(() => setWeek(null))
       .finally(() => setLoading(false))
+    // #77: when the button is on, everyone gets the add-dish action.
+    getSettings()
+      .then((s) => setOpenChoosing(s.open_choosing))
+      .catch(() => setOpenChoosing(false))
   }, [])
 
   async function onLogout() {
@@ -70,7 +76,7 @@ export function ThisWeek() {
             {cs.thisWeek.cookSummaryLink}
           </Link>
         )}
-        {canPropose(me, week) && (
+        {(openChoosing || canPropose(me, week)) && (
           <Link data-testid="action-propose-dish" to="/dishes/new">
             {cs.dish.addAction}
           </Link>
