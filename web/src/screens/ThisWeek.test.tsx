@@ -74,6 +74,19 @@ describe('ThisWeek (§14.3 hub)', () => {
     expect(screen.queryByTestId('dish-5-edit')).not.toBeInTheDocument()
   })
 
+  it('shows the add-dish action to any member when open choosing is on (#77)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 2, is_admin: false }) },
+        { path: '/weeks/current', body: weekWithDishes() },
+        { path: '/settings', body: { open_choosing: true } },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/' })
+    expect(await screen.findByTestId('action-propose-dish')).toBeInTheDocument()
+  })
+
   it('shows an empty-state when the week has no dishes', async () => {
     vi.stubGlobal(
       'fetch',

@@ -27,6 +27,7 @@ export function ThisWeek() {
       .then(setWeek)
       .catch(() => setWeek(null))
       .finally(() => setLoading(false))
+    // #77: when the button is on, everyone gets the add-dish action.
     getSettings()
       .then((s) => setOpenChoosing(s.open_choosing))
       .catch(() => setOpenChoosing(false))
@@ -75,12 +76,7 @@ export function ThisWeek() {
             {cs.thisWeek.cookSummaryLink}
           </Link>
         )}
-        {openChoosing && (
-          <Link data-testid="link-planner" to="/planner">
-            {cs.planner.link}
-          </Link>
-        )}
-        {canPropose(me, week) && (
+        {(openChoosing || canPropose(me, week)) && (
           <Link data-testid="action-propose-dish" to="/dishes/new">
             {cs.dish.addAction}
           </Link>

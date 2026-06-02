@@ -53,9 +53,9 @@ export const cs = {
     noSignups: '—',
     createDish: 'Založit jídlo',
     openChoosing: {
-      label: 'Povolit všem zakládat jídla (30 dní dopředu)',
-      hint: 'Když je zapnuto, kdokoliv může vybrat jídlo na libovolný den — max jeden oběd a jedna večeře na den.',
-      saved: 'Uloženo.',
+      enable: 'Povolit všem zakládat jídla',
+      enabled: 'Povoleno ✓',
+      hint: 'Po zapnutí může kdokoliv zakládat jídla na příštích 30 dní. Nedá se vypnout.',
     },
     chooser: {
       currentLabel: 'Volitel týdne:',
@@ -94,25 +94,9 @@ export const cs = {
     noDay: 'Vyber prosím aspoň jeden den.',
     invalidBlock: 'Konec bloku nesmí být před začátkem.',
     forbidden: 'Jídlo smí přidat jen kuchař nebo volitel týdne.',
-    conflict: 'Na tento den už je v tomto chodu jídlo.',
-    slotLunch: 'Oběd',
-    slotDinner: 'Večeře',
     blockPickerLabel: 'Vyber blok dní pro jídlo',
     blockFrom: 'Od:',
     blockTo: 'do:',
-  },
-  planner: {
-    title: 'Plánování na 30 dní',
-    link: 'Plánovat 30 dní',
-    intro: 'Vyber jídlo na libovolný den — jeden oběd a jedna večeře na den.',
-    closedNote: 'Volný výběr je vypnutý. Jídla zakládá jen kuchař nebo volitel týdne.',
-    addAction: '+ Přidat',
-    addPlaceholder: 'Název jídla',
-    addConfirm: 'Přidat',
-    addCancel: 'Zrušit',
-    signup: 'Přihlásit se',
-    edit: 'Upravit',
-    loading: 'Načítání…',
   },
 } as const
 

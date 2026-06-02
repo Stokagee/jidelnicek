@@ -708,7 +708,7 @@ button.danger:hover:not(:disabled) {
   padding: 6px 12px;
 }
 
-/* open-choosing toggle (#77) */
+/* open-choosing button (#77) */
 .open-choosing {
   margin: 0 0 20px;
   padding: 12px 14px;
@@ -717,109 +717,10 @@ button.danger:hover:not(:disabled) {
   background: var(--c-surface);
 }
 
-.open-choosing-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
 .open-choosing-hint {
   margin: 6px 0 0;
   font-size: 0.8rem;
   color: var(--c-text-muted);
-}
-
-/* 30-day planner grid (#77, #80) */
-.planner-intro {
-  margin: -4px 0 16px;
-  font-size: 0.875rem;
-  color: var(--c-text-muted);
-}
-
-.planner-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-
-.planner-table th,
-.planner-table td {
-  padding: 8px 10px;
-  border: 1px solid var(--c-border);
-  vertical-align: top;
-  text-align: left;
-}
-
-.planner-table thead th {
-  background: var(--c-bg);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--c-text-muted);
-  text-align: center;
-}
-
-.planner-day-label {
-  white-space: nowrap;
-}
-
-.planner-day-abbr {
-  font-weight: 700;
-}
-
-.planner-day-date {
-  color: var(--c-text-muted);
-}
-
-.planner-cell-filled {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.planner-cell-filled .dish-name {
-  font-weight: 600;
-}
-
-.planner-empty {
-  color: var(--c-text-muted);
-}
-
-.planner-add {
-  background: none;
-  border: 1px dashed var(--c-border);
-  color: var(--c-text-muted);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  width: 100%;
-}
-
-.planner-add:hover {
-  border-color: var(--c-border-focus);
-  color: var(--c-primary);
-}
-
-.planner-add-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.planner-add-form input {
-  flex: 1 1 90px;
-  min-width: 80px;
-}
-
-.planner-add-error {
-  flex-basis: 100%;
-  font-size: 0.8rem;
-  color: var(--c-danger, #dc2626);
 }
 
 /* ─── dark mode ────────────────────────────────────────────────────────────── */

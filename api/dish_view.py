@@ -1,12 +1,9 @@
 """Shape active dishes with their active signups for read endpoints (FR-K3).
 
-Shared by `/weeks/current` and the 30-day calendar (`GET /dishes`). Active-only
-on both sides (BR-7): soft-deleted dishes and signups are excluded.
+Active-only (BR-7): soft-deleted dishes and signups are excluded.
 """
 
 from __future__ import annotations
-
-from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -62,22 +59,6 @@ def dishes_for_week(session: Session, week_id: int) -> list[DishWithSignupsRespo
         session.scalars(
             select(Dish)
             .where(Dish.week_id == week_id, Dish.deleted_at.is_(None))  # BR-7: active only
-            .order_by(Dish.start_date, Dish.id)
-        ).all()
-    )
-    return _attach_signups(session, dishes)
-
-
-def dishes_in_range(session: Session, start: date, end: date) -> list[DishWithSignupsResponse]:
-    """Active dishes whose day-block intersects [start, end] (the 30-day grid, #80)."""
-    dishes = list(
-        session.scalars(
-            select(Dish)
-            .where(
-                Dish.deleted_at.is_(None),  # BR-7: active only
-                Dish.start_date <= end,
-                Dish.end_date >= start,
-            )
             .order_by(Dish.start_date, Dish.id)
         ).all()
     )

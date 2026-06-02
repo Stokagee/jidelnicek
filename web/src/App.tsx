@@ -7,7 +7,6 @@ import { CreateDish } from './dishes/CreateDish'
 import { EditDish } from './dishes/EditDish'
 import { SignupPage } from './dishes/SignupPage'
 import { CookSummary } from './screens/CookSummary'
-import { Planner } from './screens/Planner'
 import { ThisWeek } from './screens/ThisWeek'
 
 // Route tree (router-agnostic so tests can mount it in a MemoryRouter). Public:
@@ -20,7 +19,6 @@ export function AppRoutes() {
       <Route path="/claim/:token" element={<ClaimPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<ThisWeek />} />
-        <Route path="/planner" element={<Planner />} />
         <Route path="/cook-summary" element={<CookSummary />} />
         <Route path="/dishes/new" element={<CreateDish />} />
         <Route path="/dishes/:dishId/edit" element={<EditDish />} />

@@ -1,6 +1,6 @@
 // Dish resource wrappers over apiFetch (EP-5 / FR-D). Paths per api/routers/dishes.py.
 import { apiFetch } from './client'
-import type { Dish, DishWithSignups } from './types'
+import type { Dish } from './types'
 
 export interface DishBlockInput {
   name: string
@@ -17,28 +17,6 @@ export function createDish(weekId: number, block: DishBlockInput): Promise<Dish>
     method: 'POST',
     json: { week_id: weekId, ...block },
   })
-}
-
-export interface OpenDishInput {
-  name: string
-  start_date: string
-  end_date: string
-  slot: string // 'lunch' | 'dinner'
-}
-
-/**
- * #77 open mode: create a dish for a (day, slot) without a week — the server
- * derives and auto-creates the week (#80). 409 when another active dish of that
- * slot already covers one of the days; 422 outside the 30-day window.
- */
-export function createOpenDish(input: OpenDishInput): Promise<Dish> {
-  return apiFetch<Dish>('/dishes', { method: 'POST', json: input })
-}
-
-/** #80: active dishes (with signups) whose block intersects [start, end]. */
-export function getDishes(start: string, end: string): Promise<DishWithSignups[]> {
-  const query = new URLSearchParams({ start, end }).toString()
-  return apiFetch<DishWithSignups[]>(`/dishes?${query}`)
 }
 
 /** FR-D5 (BR-5): edit a dish (proposer or admin); 403 otherwise, 422 on bad block. */

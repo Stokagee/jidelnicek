@@ -74,6 +74,20 @@ describe('CreateDish (FR-D1, FR-D2)', () => {
     expect(posted).toBe(false)
   })
 
+  it('lets any member reach the create form when open choosing is on (#77)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 2, is_admin: false }) },
+        { path: '/weeks/current', body: makeWeek({ id: 9, chooser_id: 3, start_date: '2026-01-05' }) },
+        { path: '/settings', body: { open_choosing: true } },
+        { method: 'POST', path: '/dishes', status: 201, body: makeDish({ id: 5 }) },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/dishes/new' })
+    expect(await screen.findByTestId('dish-name')).toBeInTheDocument()
+  })
+
   it('redirects a non-chooser member away from the create route (AC-5)', async () => {
     vi.stubGlobal(
       'fetch',

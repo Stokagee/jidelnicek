@@ -105,15 +105,13 @@ export function CookSummary() {
     }
   }
 
-  async function onToggleOpenChoosing(next: boolean) {
+  async function onEnableOpenChoosing() {
     setOpenSaving(true)
-    const previous = openChoosing
-    setOpen(next) // optimistic
     try {
-      const updated = await setOpenChoosing(next)
+      const updated = await setOpenChoosing(true)
       setOpen(updated.open_choosing)
     } catch {
-      setOpen(previous) // revert on failure
+      // leave it off on failure
     } finally {
       setOpenSaving(false)
     }
@@ -154,23 +152,20 @@ export function CookSummary() {
         <Link data-testid="action-create-dish" to="/dishes/new">
           {cs.cookSummary.createDish}
         </Link>
-        <Link data-testid="action-planner" to="/planner">
-          {cs.planner.link}
-        </Link>
       </nav>
 
-      {/* #77: open-choosing toggle */}
+      {/* #77: one button that permanently lets everyone create dishes. */}
       <section className="open-choosing" data-testid="open-choosing-section">
-        <label className="open-choosing-row">
-          <input
-            type="checkbox"
-            data-testid="open-choosing-toggle"
-            checked={openChoosing}
-            disabled={openSaving}
-            onChange={(e) => onToggleOpenChoosing(e.target.checked)}
-          />
-          <span>{cs.cookSummary.openChoosing.label}</span>
-        </label>
+        <button
+          type="button"
+          data-testid="open-choosing-button"
+          disabled={openChoosing || openSaving}
+          onClick={onEnableOpenChoosing}
+        >
+          {openChoosing
+            ? cs.cookSummary.openChoosing.enabled
+            : cs.cookSummary.openChoosing.enable}
+        </button>
         <p className="open-choosing-hint">{cs.cookSummary.openChoosing.hint}</p>
       </section>
 
