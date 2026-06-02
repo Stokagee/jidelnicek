@@ -5,6 +5,7 @@ import { AppRoutes } from '../App'
 import { cs } from '../i18n/cs'
 import { renderWithProviders } from '../test/render'
 import { makeDish, makeMe, makeUser, makeWeek, mockFetch } from '../test/fixtures'
+import { formatDayMonth } from '../utils/dates'
 
 const twoMembers = () => [
   makeUser({ id: 1, name: 'admin', is_admin: true }),
@@ -43,6 +44,10 @@ describe('CookSummary (§14.5, AC-4)', () => {
     renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
     const cell = await screen.findByTestId(`summary-${today}-5`)
     expect(cell).toHaveTextContent('7')
+
+    // Column header shows the date day-first ("D. M."), not month-first (MM-DD).
+    expect(screen.getByText(formatDayMonth(today))).toBeInTheDocument()
+    expect(screen.queryByText(today.slice(5))).not.toBeInTheDocument()
   })
 
   it('redirects a non-admin member home', async () => {
