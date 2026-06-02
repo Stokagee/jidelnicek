@@ -9,8 +9,8 @@ Suite Teardown   Delete All Sessions
 *** Variables ***
 ${dish_name}    Test Dish
 ${portions}    2
-${start_day}   2026-02-06
-${end_day}     2026-09-06
+${start_day}   2026-06-02
+${end_day}     2026-06-09
 
 *** Test Cases ***
 
@@ -148,3 +148,17 @@ A member is not allowed to modify permissions (PUT /weeks/{week_id}/chooser)
     Should Not Be True    ${set_chooser_response.status_code} == 200    msg=Set chooser succeeded with status code ${set_chooser_response.status_code}, but should have failed due to lack of permissions
     Logout
 
+The exact structure of error 422 (Validation Error)
+    [Documentation]    Here, we are testing whether the API returns a 422 status code with a specific error message structure when a request fails validation.
+    ${response_admin_login}=    Login    ${ADMIN_NAME}    ${ADMIN_PASSWORD}
+    Should Be True    ${response_admin_login.status_code} == 200    msg=Admin login failed with status code ${response_admin_login.status_code}
+    VAR    ${json}    ${response_admin_login.json()}
+    Should Be True    ${json}[is_admin]    msg=Admin login did not return is_admin=True
+    ${response_current_week}=    Get Current Week
+    Should Be True    ${response_current_week.status_code} == 200    msg=Get current week failed with status code ${response_current_week.status_code}
+    VAR    ${json}    ${response_current_week.json()}
+    ${response_create_dish}=    Create Dish    week_id=${json}[id]    name=${dish_name}    start_date=invalid-date    end_date=${end_day}
+    Should Be True    ${response_create_dish.status_code} == 422    msg=Create dish with invalid date did not return status code 422, but ${response_create_dish.status_code}
+    VAR   ${error_json}    ${response_create_dish.json()}
+    Dictionary Should Contain Key    ${error_json}    detail    msg=Error response does not contain 'detail' key
+    Should Be True    ${error_json}[detail]    msg=Error response 'detail'

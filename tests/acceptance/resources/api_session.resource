@@ -73,8 +73,8 @@ Set Chooser
 Create Dish
     [Documentation]    POST /dishes — admin or week chooser creates a dish (FR-D1).
     ...    Used to SEED a dish (known block) before driving the signup UI.
-    [Arguments]    ${week_id}    ${name}    ${start_date}    ${end_date}
-    ${body}=    Create Dictionary    week_id=${week_id}    name=${name}
+    [Arguments]    ${week_id}    ${name}    ${start_date}    ${end_date}    ${unexpected_field}=${EMPTY}
+    ${body}=    Create Dictionary    week_id=${week_id}    name=${name}    unexpected_field=${unexpected_field}
     ...    start_date=${start_date}    end_date=${end_date}
     ${response}=    POST On Session    ${API_SESSION}    /dishes    json=${body}    expected_status=any
     RETURN    ${response}
@@ -127,5 +127,6 @@ Get Summary
     ...    and excludes soft-deleted rows
     ${response}=    GET On Session    ${API_SESSION}    /summary    expected_status=any
     RETURN    ${response}
+
 
 
