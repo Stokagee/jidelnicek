@@ -33,9 +33,16 @@ export interface Dish {
   // cook_id / slot are forward-compat (§11): always admin / lunch in V1. Do not
   // render UI for them.
   cook_id: number
+  // cook_id stays forward-compat (§11). `slot` gains meaning in open-choosing
+  // mode (#77): 'lunch' | 'dinner', one of each per day.
   slot: string
   start_date: string // ISO date (YYYY-MM-DD)
   end_date: string
+}
+
+/** GET /settings — installation-wide toggles (api/schemas/settings.py). */
+export interface Settings {
+  open_choosing: boolean
 }
 
 export interface DishWithSignups extends Dish {

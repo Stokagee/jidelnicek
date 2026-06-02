@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createDish, deleteDish, updateDish } from './dishes'
+import { createDish, createOpenDish, deleteDish, getDishes, updateDish } from './dishes'
 import { ApiError } from './client'
 import { makeDish, mockFetch } from '../test/fixtures'
 
@@ -87,5 +87,52 @@ describe('dish wrappers', () => {
     const [url, init] = lastCall(fetchMock)
     expect(String(url)).toMatch(/\/dishes\/5$/)
     expect(init.method).toBe('DELETE')
+  })
+
+  it('createOpenDish POSTs a (day, slot) dish without a week_id (#77/#80)', async () => {
+    const fetchMock = mockFetch([
+      { method: 'POST', path: '/dishes', status: 201, body: makeDish({ id: 7, slot: 'dinner' }) },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    const dish = await createOpenDish({
+      name: 'Čočka',
+      start_date: '2026-01-19',
+      end_date: '2026-01-19',
+      slot: 'dinner',
+    })
+    expect(dish.id).toBe(7)
+    const body = JSON.parse(lastCall(fetchMock)[1].body as string)
+    expect(body).toEqual({
+      name: 'Čočka',
+      start_date: '2026-01-19',
+      end_date: '2026-01-19',
+      slot: 'dinner',
+    })
+    expect(body).not.toHaveProperty('week_id')
+  })
+
+  it('createOpenDish surfaces ApiError(409) when the slot is taken that day (#77)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([{ method: 'POST', path: '/dishes', status: 409, body: { detail: 'taken' } }]),
+    )
+    const err = (await createOpenDish({
+      name: 'X',
+      start_date: '2026-01-19',
+      end_date: '2026-01-19',
+      slot: 'lunch',
+    }).catch((e) => e)) as ApiError
+    expect(err.status).toBe(409)
+  })
+
+  it('getDishes GETs /dishes with a start/end query (#80)', async () => {
+    const fetchMock = mockFetch([{ method: 'GET', path: '/dishes', body: [makeDish({ id: 5 })] }])
+    vi.stubGlobal('fetch', fetchMock)
+    const dishes = await getDishes('2026-01-05', '2026-02-03')
+    expect(dishes).toHaveLength(1)
+    const [url, init] = lastCall(fetchMock)
+    expect(init.method ?? 'GET').toBe('GET')
+    expect(String(url)).toContain('start=2026-01-05')
+    expect(String(url)).toContain('end=2026-02-03')
   })
 })

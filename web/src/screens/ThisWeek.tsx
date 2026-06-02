@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../api/auth'
+import { getSettings } from '../api/settings'
 import { getCurrentWeek } from '../api/weeks'
 import type { Week } from '../api/types'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -18,6 +19,7 @@ export function ThisWeek() {
   const navigate = useNavigate()
   const { me, setMe } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
+  const [openChoosing, setOpenChoosing] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,6 +27,9 @@ export function ThisWeek() {
       .then(setWeek)
       .catch(() => setWeek(null))
       .finally(() => setLoading(false))
+    getSettings()
+      .then((s) => setOpenChoosing(s.open_choosing))
+      .catch(() => setOpenChoosing(false))
   }, [])
 
   async function onLogout() {
@@ -68,6 +73,11 @@ export function ThisWeek() {
         {me?.is_admin && (
           <Link data-testid="link-cook-summary" to="/cook-summary">
             {cs.thisWeek.cookSummaryLink}
+          </Link>
+        )}
+        {openChoosing && (
+          <Link data-testid="link-planner" to="/planner">
+            {cs.planner.link}
           </Link>
         )}
         {canPropose(me, week) && (
