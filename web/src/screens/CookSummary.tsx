@@ -11,7 +11,7 @@ import { getCurrentWeek, setChooser } from '../api/weeks'
 import { BlockPicker } from '../components/BlockPicker'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../auth/useAuth'
-import { addDays, formatDayMonthRange } from '../utils/dates'
+import { addDays, formatDayMonth, formatDayMonthRange } from '../utils/dates'
 import { cs } from '../i18n/cs'
 
 function todayPrague(): string {
@@ -178,7 +178,7 @@ export function CookSummary() {
               {days.map((day) => (
                 <th key={day} className={chooserDaySet.has(day) ? 'chooser-day' : ''}>
                   <span style={{ display: 'block', fontWeight: 700 }}>{dayAbbr(day)}</span>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 400 }}>{day.slice(5)}</span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 400 }}>{formatDayMonth(day)}</span>
                 </th>
               ))}
             </tr>
