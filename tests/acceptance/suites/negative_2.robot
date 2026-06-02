@@ -1,0 +1,74 @@
+*** Settings ***
+Documentation     Negative test cases for the API
+Resource    ../resources/api_session.resource
+Variables    env_loader.py
+
+Suite Setup    Create API Session
+Suite Teardown   Delete All Sessions
+
+*** Variables ***
+${dish_name}    Test Dish
+${portions}    2
+${start_day}   2026-02-06
+${end_day}     2026-09-06
+
+*** Test Cases ***
+
+IDOR Insecure Direct Object Reference
+    [Documentation]    Here, we are testing whether a user can modify another user's data simply by guessing or forging the record ID.
+    ${response_admin_login}=    Login    ${ADMIN_NAME}    ${ADMIN_PASSWORD}
+    Should Be True    ${response_admin_login.status_code} == 200    msg=Admin login failed with status code ${response_admin_login.status_code}
+
+    VAR    ${json}    ${response_admin_login.json()}
+
+    Should Be True    ${json}[is_admin]    msg=Admin login did not return is_admin=True
+
+    ${response_current_week}=    Get Current Week
+    Should Be True    ${response_current_week.status_code} == 200    msg=Get current week failed with status code ${response_current_week.status_code}
+
+    VAR    ${json}    ${response_current_week.json()}
+
+
+    ${response_create_dish}=    Create Dish    week_id=${json}[id]    name=${dish_name}    start_date=${start_day}    end_date=${end_day}
+    Should Be True    ${response_create_dish.status_code} == 201    msg=Create dish failed with status code ${response_create_dish.status_code}
+
+    VAR   ${dish_json}    ${response_create_dish.json()}
+
+    Should Be Equal As Strings   ${dish_json}[name]    ${dish_name}    msg=Dish name in response does not match request
+    Should Be Equal As Strings   ${dish_json}[start_date]    ${start_day}    msg=Dish start date in response does not match request
+
+    Logout
+
+    ${user_2_response}=    Login    ${USER_2_NAME}    ${USER_2_PASSWORD}
+    Should Be True    ${user_2_response.status_code} == 200    msg=User 2 login failed with status code ${user_2_response.status_code}
+
+    VAR    ${json_user_2}    ${user_2_response.json()}
+
+    Should Be Equal As Strings    ${json_user_2}[name]    Kateřina    msg=User 2 login did not return expected name
+    Should Be True    ${json_user_2}[is_admin] == False    msg=User 2 login did not return is_admin=False
+
+    ${signup_response}=    Signup For Dish    dish_id=${dish_json}[id]    day=${start_day}   portions=${portions}
+
+
+    Should Be True    ${signup_response.status_code} == 201    msg=Signup for dish failed with status code ${signup_response.status_code}
+    VAR    ${signup_json}    ${signup_response.json()}
+    
+
+    Should Be Equal As Numbers    ${signup_json}[portions]    ${portions}
+    Should Be Equal As Numbers    ${signup_json}[dish_id]    ${dish_json}[id]
+
+    Logout
+
+    ${user_3_response}=    Login    ${USER_3_NAME}    ${USER_3_PASSWORD}
+    Should Be True    ${user_3_response.status_code} == 200    msg=User 3 login failed with status code ${user_3_response.status_code}
+
+    VAR    ${json_user_3}    ${user_3_response.json()}
+
+    ${patch_count_response}=    New Count Of Portions For Dish Signup    ${signup_json}[id]    ${portions}=3
+    Should Not Be True    ${patch_count_response.status_code} == 200    msg=Patch count of portions succeeded with status code ${patch_count_response.status_code}, but should have failed due to lack of permissions
+
+    Logout
+
+    Login As Admin
+    ${delete_dish_response}=    Delete The Dish    ${dish_json}[id]
+    Should Be True    ${delete_dish_response.status_code} == 200    msg=Delete dish failed with status code ${delete_dish_response.status_code}

@@ -94,3 +94,29 @@ Response Should Match Schema
 Login As Admin
     ${response}=    Login    name=admin    password=change-me-strong-admin-password
     RETURN    ${response}
+    
+Get Current Week
+    ${response}=    GET On Session    ${API_SESSION}    /weeks/current    expected_status=any
+    RETURN    ${response}
+
+Delete The Dish
+    [Documentation]    DELETE /dishes/{id} — admin or week chooser deletes a dish (FR-D3).
+    ...    Used to CLEANUP a dish after a test creates it.
+    [Arguments]    ${dish_id}
+    ${response}=    DELETE On Session    ${API_SESSION}    /dishes/${dish_id}    expected_status=any
+    RETURN    ${response}
+
+Signup For Dish
+    [Documentation]    POST /dishes/{id}/signup — member signs up for a dish (FR-D2).
+    ...    Used to SEED a signup (known block) before driving the UI.
+    [Arguments]    ${dish_id}    ${day}    ${portions}
+    ${body}=    Create Dictionary    dish_id=${dish_id}    day=${day}    portions=${portions}
+    ${response}=    POST On Session    ${API_SESSION}    /signups    json=${body}    expected_status=any
+    RETURN    ${response}
+
+New Count Of Portions For Dish Signup
+    [Documentation]    GET /dishes/{id} — get the dish's current total signup portions. Used
+    ...    to verify that a signup actually changed the total.
+    [Arguments]    ${signup_id}    ${portions}
+    ${response}=    PATCH On Session   ${API_SESSION}    /signups/${signup_id}    json=${portions}    expected_status=any
+    RETURN    ${response}
