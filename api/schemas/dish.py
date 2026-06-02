@@ -10,10 +10,15 @@ from shared.models import DishSlot
 
 
 class DishCreate(BaseModel):
-    week_id: int
+    # Optional in open mode (#80): when omitted the week is derived from start_date
+    # and auto-created. Required in closed mode (BR-6 path).
+    week_id: int | None = None
     name: str = Field(min_length=1, max_length=200)
     start_date: date
     end_date: date
+    # #77: lunch/dinner. Defaults to lunch so existing (closed-mode) callers and
+    # the §11 "always lunch" V1 behaviour are unchanged.
+    slot: DishSlot = DishSlot.LUNCH
 
 
 class DishUpdate(BaseModel):
