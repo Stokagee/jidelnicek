@@ -120,3 +120,12 @@ New Count Of Portions For Dish Signup
     [Arguments]    ${signup_id}    ${portions}
     ${response}=    PATCH On Session   ${API_SESSION}    /signups/${signup_id}    json=${portions}    expected_status=any
     RETURN    ${response}
+
+Get Summary
+    [Documentation]    GET /summary — get the chef's summary of the week's dishes and signups.
+    ...    Admin only (the cook's view). Sums every active signup — including the admin's own 
+    ...    and excludes soft-deleted rows
+    ${response}=    GET On Session    ${API_SESSION}    /summary    expected_status=any
+    RETURN    ${response}
+
+

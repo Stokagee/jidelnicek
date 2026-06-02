@@ -116,3 +116,17 @@ Deleting a dish by an external selector (DELETE /dishes/{dish_id})
     Should Not Be True    ${delete_dish_response.status_code} == 200    msg=Delete dish succeeded with status code ${delete_dish_response.status_code}, but should have failed due to lack of permissions
     Logout
 
+A member cannot view the chef's summary (GET /summary)
+    [Documentation]    Here, we are testing whether a regular member can access the chef's summary endpoint, which should be restricted to admins and choosers.
+
+    ${user_4_response}=    Login    ${USER_4_NAME}    ${USER_4_PASSWORD}
+    Should Be True    ${user_4_response.status_code} == 200    msg=User 4 login failed with status code ${user_4_response.status_code}
+
+    VAR    ${json_user_4}    ${user_4_response.json()}
+
+    Should Be Equal As Strings    ${json_user_4}[name]    Mia    msg=User 4 login did not return expected name
+    Should Be True    ${json_user_4}[is_admin] == False    msg=User 4 login did not return is_admin=False
+
+    ${summary_response}=    Get Summary
+    Should Not Be True    ${summary_response.status_code} == 200    msg=Get summary succeeded with status code ${summary_response.status_code}, but should have failed due to lack of permissions
+
