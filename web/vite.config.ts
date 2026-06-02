@@ -28,6 +28,7 @@ export default defineConfig({
       '/dishes': proxyForApi,
       '/signups': proxyForApi,
       '/summary': proxyForApi,
+      '/settings': proxyForApi,
       '^/users$': proxyForApi,
       '/admin': proxyForApi,
       '/healthz': proxyForApi,
