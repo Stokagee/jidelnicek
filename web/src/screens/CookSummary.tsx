@@ -105,13 +105,13 @@ export function CookSummary() {
     }
   }
 
-  async function onEnableOpenChoosing() {
+  async function onToggleOpenChoosing(next: boolean) {
     setOpenSaving(true)
     try {
-      const updated = await setOpenChoosing(true)
+      const updated = await setOpenChoosing(next)
       setOpen(updated.open_choosing)
     } catch {
-      // leave it off on failure
+      // leave state unchanged on failure
     } finally {
       setOpenSaving(false)
     }
@@ -159,11 +159,11 @@ export function CookSummary() {
         <button
           type="button"
           data-testid="open-choosing-button"
-          disabled={openChoosing || openSaving}
-          onClick={onEnableOpenChoosing}
+          disabled={openSaving}
+          onClick={() => onToggleOpenChoosing(!openChoosing)}
         >
           {openChoosing
-            ? cs.cookSummary.openChoosing.enabled
+            ? cs.cookSummary.openChoosing.disable
             : cs.cookSummary.openChoosing.enable}
         </button>
         <p className="open-choosing-hint">{cs.cookSummary.openChoosing.hint}</p>

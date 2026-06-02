@@ -54,8 +54,8 @@ export const cs = {
     createDish: 'Založit jídlo',
     openChoosing: {
       enable: 'Povolit všem zakládat jídla',
-      enabled: 'Povoleno ✓',
-      hint: 'Po zapnutí může kdokoliv zakládat jídla na příštích 30 dní. Nedá se vypnout.',
+      disable: 'Zrušit – zakládá jen kuchař a volitel',
+      hint: 'Když je zapnuto, jídla může zakládat kdokoliv. Když vypnuto, jen kuchař a volitel týdne.',
     },
     chooser: {
       currentLabel: 'Volitel týdne:',
