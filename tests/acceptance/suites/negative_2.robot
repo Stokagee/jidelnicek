@@ -130,3 +130,21 @@ A member cannot view the chef's summary (GET /summary)
     ${summary_response}=    Get Summary
     Should Not Be True    ${summary_response.status_code} == 200    msg=Get summary succeeded with status code ${summary_response.status_code}, but should have failed due to lack of permissions
 
+A member is not allowed to modify permissions (PUT /weeks/{week_id}/chooser)
+    [Documentation]    Here, we are testing whether a regular member can change the chooser for a week, which should be restricted to admins.
+    ${user_4_response}=    Login    ${USER_4_NAME}    ${USER_4_PASSWORD}
+    Should Be True    ${user_4_response.status_code} == 200    msg=User 4 login failed with status code ${user_4_response.status_code}
+
+    VAR    ${json_user_4}    ${user_4_response.json()}
+    Should Be Equal As Strings    ${json_user_4}[name]    Mia    msg=User 4 login did not return expected name
+    Should Be True    ${json_user_4}[is_admin] == False    msg=User 4 login did not return is_admin=False
+
+    ${response_current_week}=    Get Current Week
+    Should Be True    ${response_current_week.status_code} == 200    msg=Get current week failed with status code ${response_current_week.status_code}
+
+    VAR    ${json}    ${response_current_week.json()}
+
+    ${set_chooser_response}=    Set Chooser    week_id=${json}[id]    chooser_id=2
+    Should Not Be True    ${set_chooser_response.status_code} == 200    msg=Set chooser succeeded with status code ${set_chooser_response.status_code}, but should have failed due to lack of permissions
+    Logout
+
