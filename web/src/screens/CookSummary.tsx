@@ -37,18 +37,20 @@ interface SummaryRow {
   portions: number
 }
 
-/** One row per (day, dish) with portions ≥ 1 in [today, today+30], sorted by day
- *  then dish — "what and how much to cook" (FR-K1/FR-K2). */
+/** One row per (day, dish) for every planned day of every dish in [today, today+30],
+ *  sorted by day then dish — the full forward plan: "what to cook on which day and
+ *  how much is ordered so far" (FR-K1/FR-K2/FR-K3). A planned day with no orders
+ *  yet still shows (portions 0), so the cook sees the whole 30-day horizon. */
 function summaryRows(dishes: DishWithSignups[], today: string, end: string): SummaryRow[] {
   const rows: SummaryRow[] = []
   for (const dish of dishes) {
-    const byDay = new Map<string, number>()
-    for (const s of dish.signups) {
-      if (s.day < today || s.day > end) continue
-      byDay.set(s.day, (byDay.get(s.day) ?? 0) + s.portions)
-    }
-    for (const [day, portions] of byDay) {
-      if (portions >= 1) rows.push({ day, dishId: dish.id, dishName: dish.name, portions })
+    const from = dish.start_date < today ? today : dish.start_date
+    const to = dish.end_date > end ? end : dish.end_date
+    for (let day = from; day <= to; day = addDays(day, 1)) {
+      const portions = dish.signups
+        .filter((s) => s.day === day)
+        .reduce((sum, s) => sum + s.portions, 0)
+      rows.push({ day, dishId: dish.id, dishName: dish.name, portions })
     }
   }
   return rows.sort((a, b) =>
@@ -219,10 +221,14 @@ export function CookSummary() {
                   </td>
                   <td style={{ textAlign: 'left' }}>{row.dishName}</td>
                   <td>
-                    <span className="portions-badge">
-                      {row.portions}
-                      {cs.cookSummary.portionsUnit}
-                    </span>
+                    {row.portions > 0 ? (
+                      <span className="portions-badge">
+                        {row.portions}
+                        {cs.cookSummary.portionsUnit}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--c-text-muted)' }}>0</span>
+                    )}
                   </td>
                 </tr>
               ))
