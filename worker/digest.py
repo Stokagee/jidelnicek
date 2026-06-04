@@ -6,6 +6,11 @@ composes the digest, writes a `digest` notification row, advances `last_run_at`,
 and delivers — **all in one transaction**. This is what gives catch-up: after the
 PC sleeps through one or more slots, the next run fires the missed digest
 immediately (AC-9). Scheduling math is anchored on Europe/Prague (BR-9).
+
+Issue #73: an overdue slot with nothing new since the last digest (no non-digest
+outbox rows — FR-N7's "changes since the last digest") sends nothing. The slot is
+still consumed (`last_run_at` advances) so the cadence stays anchored, but no
+empty digest is posted to the channel.
 """
 
 from __future__ import annotations
@@ -54,6 +59,23 @@ def _compose_digest_payload(session: Session, now: datetime) -> dict:
     return {"generated_at": now.isoformat(), "items": items}
 
 
+def _has_changes_since(session: Session, watermark: datetime | None) -> bool:
+    """Issue #73 / FR-N7: was there any reportable change since the last digest?
+
+    Every demand change (FR-N1: signup created/increased/decreased/cancelled, a
+    new dish proposed) writes a non-digest notification row transactionally
+    (FR-N2), so the outbox itself is the log of "what happened". No such rows
+    since the last digest ⇒ nothing new to summarise ⇒ skip the send."""
+    query = (
+        select(func.count())
+        .select_from(Notification)
+        .where(Notification.type != NotificationType.DIGEST)
+    )
+    if watermark is not None:
+        query = query.where(Notification.created_at > watermark)
+    return session.execute(query).scalar_one() > 0
+
+
 def run_due_digest(
     session: Session,
     channel,
@@ -71,6 +93,15 @@ def run_due_digest(
 
     due = state.last_run_at is None or state.last_run_at <= now - timedelta(hours=interval_hours)
     if not due:
+        return False
+
+    # Issue #73: only send the 6h digest when something changed since the last one
+    # (FR-N7: the digest reports "changes since the last digest"). When nothing
+    # happened we still consume the slot — advance last_run_at so the cadence stays
+    # anchored and the next check is a fresh 6h window — but write and send nothing.
+    if not _has_changes_since(session, state.last_run_at):
+        state.last_run_at = now
+        session.commit()
         return False
 
     notification = Notification(
