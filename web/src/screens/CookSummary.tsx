@@ -25,19 +25,35 @@ function dayAbbr(iso: string): string {
   return ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'][dt.getUTCDay()]
 }
 
-// #80: the cook plans for the next 30 days, so the summary spans [today, today+30]
-// (one wide, horizontally-scrolling table).
+// #80: the cook plans for the next 30 days. #93: render it as a flat
+// Day | Dish | Portions table (one row per day+dish with demand), not a sparse
+// 30-column matrix.
 const HORIZON_DAYS = 30
 
-function daysFromToday(): string[] {
-  const start = todayPrague()
-  return Array.from({ length: HORIZON_DAYS + 1 }, (_, i) => addDays(start, i))
+interface SummaryRow {
+  day: string
+  dishId: number
+  dishName: string
+  portions: number
 }
 
-function portionsForDay(dish: DishWithSignups, day: string): number {
-  return dish.signups
-    .filter((s) => s.day === day)
-    .reduce((sum, s) => sum + s.portions, 0)
+/** One row per (day, dish) with portions ≥ 1 in [today, today+30], sorted by day
+ *  then dish — "what and how much to cook" (FR-K1/FR-K2). */
+function summaryRows(dishes: DishWithSignups[], today: string, end: string): SummaryRow[] {
+  const rows: SummaryRow[] = []
+  for (const dish of dishes) {
+    const byDay = new Map<string, number>()
+    for (const s of dish.signups) {
+      if (s.day < today || s.day > end) continue
+      byDay.set(s.day, (byDay.get(s.day) ?? 0) + s.portions)
+    }
+    for (const [day, portions] of byDay) {
+      if (portions >= 1) rows.push({ day, dishId: dish.id, dishName: dish.name, portions })
+    }
+  }
+  return rows.sort((a, b) =>
+    a.day !== b.day ? a.day.localeCompare(b.day) : a.dishName.localeCompare(b.dishName),
+  )
 }
 
 export function CookSummary() {
@@ -138,14 +154,9 @@ export function CookSummary() {
     )
   }
 
-  const days = daysFromToday()
   const chooserName = users.find((u) => u.id === week.chooser_id)?.name
-  const chooserDaySet = new Set(
-    week.chooser_start_date && week.chooser_end_date
-      ? days.filter((d) => d >= week.chooser_start_date! && d <= week.chooser_end_date!)
-      : [],
-  )
   const today = todayPrague()
+  const rows = summaryRows(dishes, today, addDays(today, HORIZON_DAYS))
 
   return (
     <main className="screen" data-testid="cook-summary">
@@ -179,52 +190,40 @@ export function CookSummary() {
         <p className="open-choosing-hint">{cs.cookSummary.openChoosing.hint}</p>
       </section>
 
-      {/* Week table: rows = dishes, columns = days */}
+      {/* #93: flat summary — one row per day+dish with demand in the next 30 days. */}
       <div className="week-table-wrap">
-        <table className="week-table">
+        <table className="week-table summary-table">
           <thead>
             <tr>
-              <th />
-              {days.map((day) => (
-                <th key={day} className={chooserDaySet.has(day) ? 'chooser-day' : ''}>
-                  <span style={{ display: 'block', fontWeight: 700 }}>{dayAbbr(day)}</span>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 400 }}>{formatDayMonth(day)}</span>
-                </th>
-              ))}
+              <th style={{ textAlign: 'left' }}>{cs.cookSummary.dayCol}</th>
+              <th style={{ textAlign: 'left' }}>{cs.cookSummary.dishCol}</th>
+              <th>{cs.cookSummary.portionsCol}</th>
             </tr>
           </thead>
           <tbody>
-            {dishes.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td
                   data-testid="summary-empty"
-                  colSpan={days.length + 1}
+                  colSpan={3}
                   style={{ textAlign: 'center', color: 'var(--c-text-muted)' }}
                 >
-                  Žádná jídla
+                  {cs.cookSummary.noPortions}
                 </td>
               </tr>
             ) : (
-              dishes.map((dish) => (
-                <tr key={dish.id} data-testid={`summary-dish-${dish.id}`}>
-                  <td>{dish.name}</td>
-                  {days.map((day) => {
-                    const total = portionsForDay(dish, day)
-                    return (
-                      <td key={day} data-testid={`summary-${day}-${dish.id}`}>
-                        {total > 0 ? (
-                          <span className="portions-badge">
-                            {total}
-                            {cs.cookSummary.portionsUnit}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--c-text-muted)' }}>
-                            {cs.cookSummary.noSignups}
-                          </span>
-                        )}
-                      </td>
-                    )
-                  })}
+              rows.map((row) => (
+                <tr key={`${row.day}-${row.dishId}`} data-testid={`summary-${row.day}-${row.dishId}`}>
+                  <td style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
+                    <strong>{dayAbbr(row.day)}</strong> <span>{formatDayMonth(row.day)}</span>
+                  </td>
+                  <td style={{ textAlign: 'left' }}>{row.dishName}</td>
+                  <td>
+                    <span className="portions-badge">
+                      {row.portions}
+                      {cs.cookSummary.portionsUnit}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}

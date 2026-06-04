@@ -5,7 +5,7 @@ import { AppRoutes } from '../App'
 import { cs } from '../i18n/cs'
 import { renderWithProviders } from '../test/render'
 import { makeDish, makeMe, makeUser, makeWeek, mockFetch } from '../test/fixtures'
-import { formatDayMonth } from '../utils/dates'
+import { addDays, formatDayMonth } from '../utils/dates'
 
 const twoMembers = () => [
   makeUser({ id: 1, name: 'admin', is_admin: true }),
@@ -50,6 +50,34 @@ describe('CookSummary (§14.5, AC-4)', () => {
     // Column header shows the date day-first ("D. M."), not month-first (MM-DD).
     expect(screen.getByText(formatDayMonth(today))).toBeInTheDocument()
     expect(screen.queryByText(today.slice(5))).not.toBeInTheDocument()
+  })
+
+  it('lists only days with demand, one row per day+dish (#93 flat table)', async () => {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date())
+    const tomorrow = addDays(today, 1)
+    const withDemand = makeDish({
+      id: 5,
+      name: 'Svíčková',
+      start_date: today,
+      end_date: tomorrow,
+      signups: [{ id: 1, user_id: 1, user_name: 'a', day: tomorrow, portions: 2 }],
+    })
+    const noDemand = makeDish({ id: 6, name: 'Guláš', start_date: today, end_date: today, signups: [] })
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+        { path: '/weeks/current', body: makeWeek({ id: 9, start_date: today }) },
+        { path: '/users', body: twoMembers() },
+        { method: 'GET', path: '/dishes', body: [withDemand, noDemand] },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
+
+    // The dish with demand shows a row on its demand day; the empty dish has none.
+    expect(await screen.findByTestId(`summary-${tomorrow}-5`)).toHaveTextContent('2')
+    expect(screen.queryByTestId(`summary-${today}-5`)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(`summary-${today}-6`)).not.toBeInTheDocument()
   })
 
   it('redirects a non-admin member home', async () => {
