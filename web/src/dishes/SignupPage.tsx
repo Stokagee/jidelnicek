@@ -3,10 +3,10 @@
 // portions and sign up; the in-session signups can then all be cancelled at once.
 import { useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import type { Signup, Week } from '../api/types'
+import type { DishWithSignups, Signup } from '../api/types'
 import { ApiError } from '../api/client'
+import { getDish } from '../api/dishes'
 import { cancelSignup, createSignup } from '../api/signups'
-import { getCurrentWeek } from '../api/weeks'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { WeekCalendar } from '../components/WeekCalendar'
 import { isDayInBlock } from '../domain/block'
@@ -17,7 +17,7 @@ import { cs } from '../i18n/cs'
 export function SignupPage() {
   const { dishId } = useParams<{ dishId: string }>()
   const navigate = useNavigate()
-  const [week, setWeek] = useState<Week | null>(null)
+  const [dish, setDish] = useState<DishWithSignups | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [portions, setPortions] = useState(1)
@@ -26,11 +26,13 @@ export function SignupPage() {
   const [signups, setSignups] = useState<Signup[]>([])
 
   useEffect(() => {
-    getCurrentWeek()
-      .then(setWeek)
-      .catch(() => setWeek(null))
+    // #80: load the dish by id, so a future / cross-week dish can be signed up for
+    // too (it is not in /weeks/current). 404 → home.
+    getDish(Number(dishId))
+      .then(setDish)
+      .catch(() => setDish(null))
       .finally(() => setLoading(false))
-  }, [])
+  }, [dishId])
 
   if (loading) {
     return (
@@ -40,7 +42,6 @@ export function SignupPage() {
     )
   }
 
-  const dish = week?.dishes.find((d) => d.id === Number(dishId)) ?? null
   if (!dish) {
     return <Navigate to="/" replace />
   }

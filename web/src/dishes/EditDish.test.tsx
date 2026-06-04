@@ -3,27 +3,26 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppRoutes } from '../App'
 import { renderWithProviders } from '../test/render'
-import { makeDish, makeMe, makeWeek, mockFetch } from '../test/fixtures'
+import { makeDish, makeMe, mockFetch } from '../test/fixtures'
 
 describe('EditDish (FR-D5, BR-5/BR-7)', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
   })
 
-  function weekWithDish() {
-    return makeWeek({
-      id: 9,
-      start_date: '2026-01-05',
-      dishes: [makeDish({ id: 5, name: 'Svíčková', proposed_by_id: 3 })],
-    })
-  }
+  // #80: EditDish loads the dish by id (GET /dishes/{id}), not from the current week.
+  const dishRoute = () => ({
+    method: 'GET',
+    path: '/dishes/5',
+    body: makeDish({ id: 5, name: 'Svíčková', proposed_by_id: 3 }),
+  })
 
   it('prefills the form for the proposer and soft-deletes back to the home', async () => {
     vi.stubGlobal(
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 3, is_admin: false }) },
-        { path: '/weeks/current', body: weekWithDish() },
+        dishRoute(),
         { method: 'DELETE', path: '/dishes/5', body: { ok: true } },
       ]),
     )
@@ -38,7 +37,8 @@ describe('EditDish (FR-D5, BR-5/BR-7)', () => {
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 2, is_admin: false }) },
-        { path: '/weeks/current', body: weekWithDish() },
+        dishRoute(),
+        { method: 'GET', path: '/dishes', body: [] },
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/dishes/5/edit' })

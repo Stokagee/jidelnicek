@@ -4,14 +4,15 @@ import userEvent from '@testing-library/user-event'
 import { AppRoutes } from '../App'
 import { cs } from '../i18n/cs'
 import { renderWithProviders } from '../test/render'
-import { makeDish, makeMe, makeSignup, makeWeek, mockFetch } from '../test/fixtures'
+import { makeDish, makeMe, makeSignup, mockFetch } from '../test/fixtures'
 
-const weekWithDish = () =>
-  makeWeek({
-    id: 9,
-    start_date: '2026-01-05',
-    dishes: [makeDish({ id: 5, name: 'Guláš', start_date: '2026-01-05', end_date: '2026-01-07' })],
-  })
+// #80: SignupPage loads the dish by id (GET /dishes/{id}), not from the current
+// week, so any future/cross-week dish can be signed up for.
+const dishRoute = () => ({
+  method: 'GET',
+  path: '/dishes/5',
+  body: makeDish({ id: 5, name: 'Guláš', start_date: '2026-01-05', end_date: '2026-01-07' }),
+})
 
 describe('SignupPage (FR-S1/FR-S2, AC-1/AC-2)', () => {
   afterEach(() => {
@@ -23,7 +24,7 @@ describe('SignupPage (FR-S1/FR-S2, AC-1/AC-2)', () => {
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 2 }) },
-        { path: '/weeks/current', body: weekWithDish() },
+        dishRoute(),
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/dishes/5/signup' })
@@ -39,7 +40,7 @@ describe('SignupPage (FR-S1/FR-S2, AC-1/AC-2)', () => {
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 2 }) },
-        { path: '/weeks/current', body: weekWithDish() },
+        dishRoute(),
         { method: 'POST', path: '/signups', status: 201, body: makeSignup({ id: 8 }) },
         { method: 'DELETE', path: '/signups/8', body: { ok: true } },
       ]),
@@ -56,7 +57,7 @@ describe('SignupPage (FR-S1/FR-S2, AC-1/AC-2)', () => {
   it('blocks submit client-side when portions < 1 (AC-2)', async () => {
     const fetchMock = mockFetch([
       { path: '/me', body: makeMe({ id: 2 }) },
-      { path: '/weeks/current', body: weekWithDish() },
+      dishRoute(),
       { method: 'POST', path: '/signups', status: 201, body: makeSignup({ id: 8 }) },
     ])
     vi.stubGlobal('fetch', fetchMock)
@@ -77,7 +78,7 @@ describe('SignupPage (FR-S1/FR-S2, AC-1/AC-2)', () => {
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 2 }) },
-        { path: '/weeks/current', body: weekWithDish() },
+        dishRoute(),
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/dishes/5/signup' })

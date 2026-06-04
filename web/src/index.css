@@ -723,6 +723,126 @@ button.danger:hover:not(:disabled) {
   color: var(--c-text-muted);
 }
 
+/* ─── 30-day browser: week/month toggle, pager, month grid (#80) ──────────── */
+.view-toggle {
+  display: inline-flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.view-toggle button {
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  border: none;
+  border-radius: 0;
+  padding: 8px 18px;
+  min-height: 38px;
+  font-size: 0.875rem;
+}
+
+.view-toggle button[aria-pressed='true'] {
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+}
+
+.week-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.week-pager span {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.week-pager button {
+  background: transparent;
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  min-height: 40px;
+  padding: 6px 16px;
+}
+
+.week-pager button:disabled {
+  opacity: 0.4;
+}
+
+.month-title {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: unset;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+a.month-day:hover {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+  background: var(--c-surface);
+}
+
+.month-day--has-dish {
+  position: relative;
+  border-color: var(--c-primary);
+  font-weight: 700;
+}
+
+.month-day--has-dish::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-primary);
+}
+
+.month-day--out {
+  background: transparent;
+  border-color: transparent;
+  color: var(--c-border);
+  pointer-events: none;
+}
+
+.month-day--selected {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-primary-text);
+  font-weight: 700;
+}
+
+a.month-day--selected:hover {
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+}
+
 /* ─── dark mode ────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {

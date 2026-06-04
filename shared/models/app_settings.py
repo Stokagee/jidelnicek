@@ -1,10 +1,12 @@
 """DM extension: installation-wide settings (issue #77).
 
 A single-row table (`id == 1`) holding installation-wide toggles. The first is
-`open_choosing`: when on, anyone may create dishes (relaxing BR-6) and the 30-day
-planning horizon is in effect (#80). It is a mechanism column; flipping it is the
-admin's policy decision (BR-1 spirit). Additive with a server default so existing
-installs read `false`.
+`open_choosing`: when on, anyone may create dishes (relaxing BR-6); when off only
+the admin or the week's chooser may. It is a mechanism column; flipping it is the
+admin's policy decision (BR-1 spirit). The 30-day planning horizon (#80) is
+independent of this toggle — it governs *how far ahead* a dish may be planned,
+not *who* may plan it. Additive with a server default so existing installs read
+`false`.
 """
 
 from __future__ import annotations

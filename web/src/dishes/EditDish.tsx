@@ -4,12 +4,12 @@
 // (full list reflection comes with the dish list in T-7.3).
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import type { Week } from '../api/types'
-import { deleteDish, updateDish } from '../api/dishes'
-import { getCurrentWeek } from '../api/weeks'
+import type { DishWithSignups } from '../api/types'
+import { deleteDish, getDish, updateDish } from '../api/dishes'
 import { useAuth } from '../auth/useAuth'
 import { canEdit } from '../domain/dishBlock'
 import { cs } from '../i18n/cs'
+import { mondayOf } from '../utils/dates'
 import { DishForm, type DishFormValues } from './DishForm'
 import { dishErrorMessage } from './dishErrors'
 import { validateDishForm } from './validateDishForm'
@@ -19,18 +19,20 @@ export function EditDish() {
   const { dishId } = useParams<{ dishId: string }>()
   const navigate = useNavigate()
   const { me } = useAuth()
-  const [week, setWeek] = useState<Week | null>(null)
+  const id = Number(dishId)
+  const [dish, setDish] = useState<DishWithSignups | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    getCurrentWeek()
-      .then(setWeek)
-      .catch(() => setWeek(null))
+    // #80: load the dish by id so a future / cross-week dish is editable too.
+    getDish(id)
+      .then(setDish)
+      .catch(() => setDish(null))
       .finally(() => setLoading(false))
-  }, [])
+  }, [id])
 
   if (loading) {
     return (
@@ -40,16 +42,13 @@ export function EditDish() {
     )
   }
 
-  const id = Number(dishId)
-  const dish = week?.dishes.find((d) => d.id === id) ?? null
   if (!dish || !canEdit(me, dish)) {
     return <Navigate to="/" replace />
   }
 
-  const { min, max } = weekRange(week!.start_date)
-  const todayPrague = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(
-    new Date(),
-  )
+  // Constrain the block picker to the dish's own ISO week.
+  const weekMonday = mondayOf(dish.start_date)
+  const { min, max } = weekRange(weekMonday)
 
   async function onSubmit(values: DishFormValues) {
     setError(null)
@@ -85,7 +84,7 @@ export function EditDish() {
     <DishForm
       title={cs.dish.editTitle}
       initial={{ name: dish.name, start_date: dish.start_date, end_date: dish.end_date }}
-      startIso={todayPrague}
+      startIso={weekMonday}
       minDate={min}
       maxDate={max}
       error={error}

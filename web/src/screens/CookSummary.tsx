@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import type { DishWithSignups, User, Week } from '../api/types'
 import { getUsers } from '../api/auth'
+import { getDishes } from '../api/dishes'
 import { getSettings, setOpenChoosing } from '../api/settings'
 import { getCurrentWeek, setChooser } from '../api/weeks'
 import { BlockPicker } from '../components/BlockPicker'
@@ -24,9 +25,13 @@ function dayAbbr(iso: string): string {
   return ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'][dt.getUTCDay()]
 }
 
+// #80: the cook plans for the next 30 days, so the summary spans [today, today+30]
+// (one wide, horizontally-scrolling table).
+const HORIZON_DAYS = 30
+
 function daysFromToday(): string[] {
   const start = todayPrague()
-  return Array.from({ length: 7 }, (_, i) => addDays(start, i))
+  return Array.from({ length: HORIZON_DAYS + 1 }, (_, i) => addDays(start, i))
 }
 
 function portionsForDay(dish: DishWithSignups, day: string): number {
@@ -39,6 +44,7 @@ export function CookSummary() {
   const navigate = useNavigate()
   const { me } = useAuth()
   const [week, setWeek] = useState<Week | null>(null)
+  const [dishes, setDishes] = useState<DishWithSignups[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -55,17 +61,21 @@ export function CookSummary() {
   const [chooserSaving, setChooserSaving] = useState(false)
 
   useEffect(() => {
+    const start = todayPrague()
     Promise.all([
       getCurrentWeek(),
       getUsers().catch((): User[] => []),
       getSettings()
         .then((s) => s.open_choosing)
         .catch(() => false),
+      // #80: dishes across the whole 30-day window feed the summary table.
+      getDishes(start, addDays(start, HORIZON_DAYS)).catch((): DishWithSignups[] => []),
     ])
-      .then(([w, us, open]) => {
+      .then(([w, us, open, ds]) => {
         setWeek(w)
         setUsers(us)
         setOpen(open)
+        setDishes(ds)
         setPendingChooserId(w.chooser_id ?? '')
         // Pre-fill chooser days from saved range
         if (w.chooser_start_date && w.chooser_end_date) {
@@ -184,14 +194,18 @@ export function CookSummary() {
             </tr>
           </thead>
           <tbody>
-            {week.dishes.length === 0 ? (
+            {dishes.length === 0 ? (
               <tr>
-                <td data-testid="summary-empty" colSpan={8} style={{ textAlign: 'center', color: 'var(--c-text-muted)' }}>
+                <td
+                  data-testid="summary-empty"
+                  colSpan={days.length + 1}
+                  style={{ textAlign: 'center', color: 'var(--c-text-muted)' }}
+                >
                   Žádná jídla
                 </td>
               </tr>
             ) : (
-              week.dishes.map((dish) => (
+              dishes.map((dish) => (
                 <tr key={dish.id} data-testid={`summary-dish-${dish.id}`}>
                   <td>{dish.name}</td>
                   {days.map((day) => {
