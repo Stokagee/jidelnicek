@@ -1,6 +1,7 @@
 // Month grid for picking a single day within the 30-day planning window (#80).
 // Presentational/controlled: the parent owns the selected day. Days outside
 // [windowStart, windowEnd] render as inert cells; in-window days are buttons.
+import { useEffect, useRef } from 'react'
 import { cs } from '../i18n/cs'
 import { addDays, mondayOf } from '../utils/dates'
 
@@ -18,6 +19,13 @@ export function MonthDayPicker({ windowStart, windowEnd, selected, onSelect }: P
   const days: string[] = []
   const gridEnd = addDays(mondayOf(windowEnd), 6)
   for (let d = mondayOf(windowStart); d <= gridEnd; d = addDays(d, 1)) days.push(d)
+
+  // #1: scroll the selected day into view on open / when it changes, so the user
+  // lands on it without hunting (scrollIntoView is a no-op under jsdom).
+  const selectedRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView?.({ block: 'center' })
+  }, [selected])
 
   return (
     <div className="month-grid" role="group" aria-label={cs.dish.pickDayLabel}>
@@ -42,6 +50,7 @@ export function MonthDayPicker({ windowStart, windowEnd, selected, onSelect }: P
         return (
           <button
             key={day}
+            ref={isSelected ? selectedRef : undefined}
             type="button"
             className={cls}
             data-testid={`pick-day-${day}`}

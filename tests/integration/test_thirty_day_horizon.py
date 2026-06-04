@@ -215,3 +215,43 @@ def test_list_dishes_in_range_spans_weeks_with_signups_issue80(
     assert dish_now.id in by_id and dish_next.id in by_id
     assert sum(s["portions"] for s in by_id[dish_now.id]["signups"]) == 3
     assert by_id[dish_next.id]["signups"] == []
+
+
+# --------------------------------------------------------------------------- #
+# GET /dishes/{id} — load a single dish in any week (#80)                      #
+# --------------------------------------------------------------------------- #
+
+
+def test_get_dish_returns_a_future_dish_with_signups_issue80(
+    db_session,
+    test_user: User,
+    make_week: Callable[..., Week],
+    make_dish: Callable[..., Dish],
+    make_signup: Callable[..., object],
+    client,
+    login: Callable[[str, str], object],
+) -> None:
+    """#80: a single future dish (with its signups) is loadable by id — this is
+    what lets signup/edit screens act on a dish outside the current week."""
+    make_week()  # current week (offset 0)
+    future = make_week()  # +1 week
+    dish = make_dish(week=future, proposed_by=test_user, start_date=future.start_date)
+    make_signup(dish=dish, user=test_user, day=future.start_date, portions=4)
+
+    _login(login, test_user)
+    response = client.get(f"/dishes/{dish.id}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == dish.id
+    assert sum(s["portions"] for s in body["signups"]) == 4
+
+
+def test_get_dish_404_for_missing_dish_issue80(
+    db_session,
+    test_user: User,
+    client,
+    login: Callable[[str, str], object],
+) -> None:
+    """#80: an unknown (or soft-deleted) dish is a 404, not a redirect-to-home."""
+    _login(login, test_user)
+    assert client.get("/dishes/999999").status_code == 404

@@ -67,6 +67,15 @@ def dishes_for_week(session: Session, week_id: int) -> list[DishWithSignupsRespo
     return _attach_signups(session, dishes)
 
 
+def dish_with_signups(session: Session, dish_id: int) -> DishWithSignupsResponse | None:
+    """A single active dish with its active signups, or None if missing/soft-deleted
+    (BR-7). Backs GET /dishes/{id}, used by the signup/edit screens across weeks (#80)."""
+    dish = session.get(Dish, dish_id)
+    if dish is None or dish.deleted_at is not None:
+        return None
+    return _attach_signups(session, [dish])[0]
+
+
 def dishes_in_range(session: Session, start: date, end: date) -> list[DishWithSignupsResponse]:
     """Active dishes whose day-block intersects [start, end], each with their active
     signups — the read behind the 30-day week/month browser (#80). Spans weeks."""

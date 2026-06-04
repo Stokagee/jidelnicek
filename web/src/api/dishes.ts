@@ -35,6 +35,12 @@ export function getDishes(start: string, end: string): Promise<DishWithSignups[]
   return apiFetch<DishWithSignups[]>(`/dishes?${query}`)
 }
 
+/** #80: a single dish (with signups) by id, in any week — so signup/edit screens
+ *  work for dishes outside the current week. 404 surfaces as an ApiError. */
+export function getDish(dishId: number): Promise<DishWithSignups> {
+  return apiFetch<DishWithSignups>(`/dishes/${dishId}`)
+}
+
 /** FR-D5 (BR-5): edit a dish (proposer or admin); 403 otherwise, 422 on bad block. */
 export function updateDish(dishId: number, patch: Partial<DishBlockInput>): Promise<Dish> {
   return apiFetch<Dish>(`/dishes/${dishId}`, { method: 'PATCH', json: patch })

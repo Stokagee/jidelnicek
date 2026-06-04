@@ -16,7 +16,7 @@ from sqlalchemy import select
 
 from api.app_settings import get_app_settings
 from api.deps import CurrentUser, SessionDep
-from api.dish_view import dishes_in_range
+from api.dish_view import dish_with_signups, dishes_in_range
 from api.outbox import write_notification
 from api.schemas.dish import DishCreate, DishResponse, DishUpdate
 from api.schemas.week import DishWithSignupsResponse
@@ -104,6 +104,16 @@ def list_dishes(
     """#80: active dishes (with signups) whose block intersects [start, end] — the
     read behind the 30-day week/month browser, which spans weeks."""
     return dishes_in_range(session, start, end)
+
+
+@router.get("/dishes/{dish_id}", response_model=DishWithSignupsResponse)
+def get_dish(dish_id: int, _user: CurrentUser, session: SessionDep) -> DishWithSignupsResponse:
+    """#80: a single dish (with its signups) in any week — backs the signup/edit
+    screens so they work for dishes outside the current week. 404 if missing (BR-7)."""
+    view = dish_with_signups(session, dish_id)
+    if view is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dish not found")
+    return view
 
 
 @router.post("/dishes", response_model=DishResponse, status_code=status.HTTP_201_CREATED)

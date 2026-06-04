@@ -37,8 +37,10 @@ describe('CookSummary (§14.5, AC-4)', () => {
       'fetch',
       mockFetch([
         { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
-        { path: '/weeks/current', body: makeWeek({ id: 9, start_date: mondayOfWeek, dishes: [dish] }) },
+        { path: '/weeks/current', body: makeWeek({ id: 9, start_date: mondayOfWeek }) },
         { path: '/users', body: twoMembers() },
+        // #80: the summary table now reads the 30-day range, not week.dishes.
+        { method: 'GET', path: '/dishes', body: [dish] },
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
@@ -70,6 +72,7 @@ describe('CookSummary (§14.5, AC-4)', () => {
         { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
         { path: '/weeks/current', body: makeWeek({ id: 9, start_date: '2026-01-05', dishes: [] }) },
         { path: '/users', body: twoMembers() },
+        { method: 'GET', path: '/dishes', body: [] },
       ]),
     )
     renderWithProviders(<AppRoutes />, { route: '/cook-summary' })

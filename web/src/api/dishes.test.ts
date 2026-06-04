@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createDish, createPlannedDish, deleteDish, getDishes, updateDish } from './dishes'
+import { createDish, createPlannedDish, deleteDish, getDish, getDishes, updateDish } from './dishes'
 import { ApiError } from './client'
 import { makeDish, mockFetch } from '../test/fixtures'
 
@@ -116,6 +116,16 @@ describe('dish wrappers', () => {
     expect(String(url)).toContain('start=2026-01-05')
     expect(String(url)).toContain('end=2026-02-04')
     expect((init.method ?? 'GET').toUpperCase()).toBe('GET')
+  })
+
+  it('getDish GETs /dishes/{id} (#80 — load a dish in any week)', async () => {
+    const fetchMock = mockFetch([
+      { method: 'GET', path: '/dishes/5', body: makeDish({ id: 5, name: 'Guláš' }) },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    const dish = await getDish(5)
+    expect(dish.id).toBe(5)
+    expect(String(lastCall(fetchMock)[0])).toMatch(/\/dishes\/5$/)
   })
 
   it('updateDish PATCHes the changed fields to /dishes/{id} (FR-D5)', async () => {
