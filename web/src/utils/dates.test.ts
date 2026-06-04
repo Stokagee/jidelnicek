@@ -1,10 +1,36 @@
-import { describe, expect, it } from 'vitest'
-import { addDays, formatDayMonth, formatDayMonthRange } from './dates'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { addDays, formatDayMonth, formatDayMonthRange, mondayOf, todayPrague } from './dates'
 
 describe('addDays', () => {
   it('adds days across month boundaries without DST drift', () => {
     expect(addDays('2026-01-05', 2)).toBe('2026-01-07')
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01')
+  })
+
+  it('subtracts days with a negative offset', () => {
+    expect(addDays('2026-02-01', -1)).toBe('2026-01-31')
+  })
+})
+
+// #80: the 30-day window is built from Mondays anchored on Europe/Prague today.
+describe('mondayOf', () => {
+  it('returns the Monday of the ISO week for any weekday', () => {
+    expect(mondayOf('2026-01-05')).toBe('2026-01-05') // a Monday → itself
+    expect(mondayOf('2026-01-07')).toBe('2026-01-05') // Wednesday
+    expect(mondayOf('2026-01-11')).toBe('2026-01-05') // Sunday → same week's Monday
+    expect(mondayOf('2026-01-12')).toBe('2026-01-12') // next Monday
+  })
+})
+
+describe('todayPrague', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('formats the current Europe/Prague date as YYYY-MM-DD', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-01-05T12:00:00+01:00'))
+    expect(todayPrague()).toBe('2026-01-05')
   })
 })
 

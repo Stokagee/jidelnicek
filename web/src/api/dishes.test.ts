@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createDish, deleteDish, updateDish } from './dishes'
+import { createDish, createPlannedDish, deleteDish, getDishes, updateDish } from './dishes'
 import { ApiError } from './client'
 import { makeDish, mockFetch } from '../test/fixtures'
 
@@ -66,6 +66,56 @@ describe('dish wrappers', () => {
     }).catch((e) => e)) as ApiError
     expect(err.status).toBe(422)
     expect(err.message).toMatch(/precede/)
+  })
+
+  it('createPlannedDish POSTs the block without a week_id (#80 date-driven path)', async () => {
+    const fetchMock = mockFetch([
+      { method: 'POST', path: '/dishes', status: 201, body: makeDish({ id: 7 }) },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    const dish = await createPlannedDish({
+      name: 'Svíčková',
+      start_date: '2026-01-20',
+      end_date: '2026-01-20',
+    })
+    expect(dish.id).toBe(7)
+    const body = JSON.parse(lastCall(fetchMock)[1].body as string)
+    expect(body).toEqual({ name: 'Svíčková', start_date: '2026-01-20', end_date: '2026-01-20' })
+    expect(body).not.toHaveProperty('week_id')
+  })
+
+  it('createPlannedDish surfaces ApiError(422) when the day is past the horizon (#80)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        {
+          method: 'POST',
+          path: '/dishes',
+          status: 422,
+          body: { detail: 'dish must fall within the next 30 days' },
+        },
+      ]),
+    )
+    const err = (await createPlannedDish({
+      name: 'X',
+      start_date: '2026-03-01',
+      end_date: '2026-03-01',
+    }).catch((e) => e)) as ApiError
+    expect(err.status).toBe(422)
+  })
+
+  it('getDishes GETs /dishes with start & end query params (#80)', async () => {
+    const fetchMock = mockFetch([
+      { method: 'GET', path: '/dishes', body: [makeDish({ id: 5 }), makeDish({ id: 6 })] },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    const dishes = await getDishes('2026-01-05', '2026-02-04')
+    expect(dishes.map((d) => d.id)).toEqual([5, 6])
+    const [url, init] = lastCall(fetchMock)
+    expect(String(url)).toContain('/dishes?')
+    expect(String(url)).toContain('start=2026-01-05')
+    expect(String(url)).toContain('end=2026-02-04')
+    expect((init.method ?? 'GET').toUpperCase()).toBe('GET')
   })
 
   it('updateDish PATCHes the changed fields to /dishes/{id} (FR-D5)', async () => {

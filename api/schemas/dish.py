@@ -10,7 +10,10 @@ from shared.models import DishSlot
 
 
 class DishCreate(BaseModel):
-    week_id: int
+    # #80: week_id is optional. When omitted, the week is derived from start_date
+    # and auto-created (the date-driven planning path); when given, the legacy
+    # by-id path is used unchanged.
+    week_id: int | None = None
     name: str = Field(min_length=1, max_length=200)
     start_date: date
     end_date: date

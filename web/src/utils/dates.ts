@@ -5,6 +5,19 @@ export function addDays(iso: string, n: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
+/** Today's date (YYYY-MM-DD) in Europe/Prague (BR-9), so the 30-day planning
+ *  window (#80) is anchored on the household's local "today". */
+export function todayPrague(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date())
+}
+
+/** The Monday (YYYY-MM-DD) of the ISO week containing `iso`. */
+export function mondayOf(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dow = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7 // Mon=0 … Sun=6
+  return addDays(iso, -dow)
+}
+
 /** Format an ISO date (YYYY-MM-DD) as Czech "D. M." — day and month, no leading
  *  zeros, no year (#47). Returns the input unchanged when it isn't an ISO date. */
 export function formatDayMonth(iso: string): string {

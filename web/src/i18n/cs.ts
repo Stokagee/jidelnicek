@@ -46,6 +46,13 @@ export const cs = {
     edit: 'Upravit',
     cookSummaryLink: 'Souhrn kuchaře',
     yourDays: 'Tvoje dny jako volitel:',
+    // #80: browse the next 30 days by week or by month.
+    viewWeek: 'Týden',
+    viewMonth: 'Měsíc',
+    prevWeek: 'Předchozí týden',
+    nextWeek: 'Další týden',
+    monthTitle: 'Příštích 30 dní',
+    addOnDay: 'Přidat jídlo na tento den',
   },
   cookSummary: {
     title: 'Souhrn kuchaře',

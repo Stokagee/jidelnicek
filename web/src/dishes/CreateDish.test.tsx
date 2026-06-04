@@ -29,6 +29,29 @@ describe('CreateDish (FR-D1, FR-D2)', () => {
     expect(await screen.findByTestId('this-week')).toBeInTheDocument()
   })
 
+  it('plans a dish by date (no week_id) when a ?date is given (#80)', async () => {
+    const fetchMock = mockFetch([
+      { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+      { path: '/weeks/current', body: makeWeek({ id: 9, start_date: '2026-01-05' }) },
+      { method: 'POST', path: '/dishes', status: 201, body: makeDish({ id: 7 }) },
+    ])
+    vi.stubGlobal('fetch', fetchMock)
+    renderWithProviders(<AppRoutes />, { route: '/dishes/new?date=2026-01-20' })
+    await userEvent.type(await screen.findByTestId('dish-name'), 'Svíčková')
+    fireEvent.change(screen.getByTestId('dish-start-date'), { target: { value: '2026-01-20' } })
+    fireEvent.change(screen.getByTestId('dish-end-date'), { target: { value: '2026-01-20' } })
+    await userEvent.click(screen.getByTestId('dish-submit'))
+
+    expect(await screen.findByTestId('this-week')).toBeInTheDocument()
+    const post = (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => (c[1] as RequestInit)?.method === 'POST',
+    )
+    expect(post).toBeDefined()
+    const body = JSON.parse((post![1] as RequestInit).body as string)
+    expect(body).toEqual({ name: 'Svíčková', start_date: '2026-01-20', end_date: '2026-01-20' })
+    expect(body).not.toHaveProperty('week_id')
+  })
+
   it('blocks submit and shows a client error when the block end precedes its start (FR-D1)', async () => {
     const fetchMock = mockFetch([
       { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
