@@ -104,6 +104,8 @@ export const cs = {
     blockPickerLabel: 'Vyber blok dní pro jídlo',
     blockFrom: 'Od:',
     blockTo: 'do:',
+    // #80: pick the day to plan within the next 30 days, then refine the block.
+    pickDayLabel: 'Vyber den (do 30 dní dopředu)',
   },
 } as const
 

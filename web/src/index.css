@@ -831,6 +831,18 @@ a.month-day:hover {
   pointer-events: none;
 }
 
+.month-day--selected {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-primary-text);
+  font-weight: 700;
+}
+
+a.month-day--selected:hover {
+  background: var(--c-primary);
+  color: var(--c-primary-text);
+}
+
 /* ─── dark mode ────────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
