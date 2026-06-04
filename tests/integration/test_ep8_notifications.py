@@ -197,13 +197,25 @@ def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     db_session: Session,
     frozen_clock,
 ) -> None:
-    """AC-9 (FR-N4): the last digest was 14h ago (PC asleep). On the next run the
-    worker fires the missed digest immediately and advances last_run_at."""
+    """AC-9 (FR-N4): the last digest was 14h ago (PC asleep) and a change happened
+    in the meantime. On the next run the worker fires the missed digest immediately
+    and advances last_run_at."""
     from worker.digest import run_due_digest  # lazy: exists from T-8.4
 
     now = datetime.now(PRAGUE_TZ)
     stale = now - timedelta(hours=14)
     db_session.add(SchedulerState(key=DIGEST_KEY, last_run_at=stale))
+    # A change occurred during the missed window: since issue #73 the catch-up
+    # digest only fires when there is something new to report (FR-N7).
+    db_session.add(
+        Notification(
+            type=NotificationType.SIGNUP_CREATED,
+            payload={"detail": "test"},
+            channel="discord",
+            status=NotificationStatus.PENDING,
+            created_at=now - timedelta(hours=1),
+        )
+    )
     db_session.flush()
 
     sent = run_due_digest(db_session, _RecordingChannel(), key=DIGEST_KEY, interval_hours=6)
@@ -213,6 +225,65 @@ def test_worker_catch_up_sends_missed_digest_on_startup_AC9(
     state = db_session.get(SchedulerState, DIGEST_KEY)
     assert state.last_run_at is not None
     assert state.last_run_at > stale
+
+
+def test_digest_skipped_when_no_changes_since_last_issue73(
+    db_session: Session,
+    frozen_clock,
+) -> None:
+    """Issue #73: an overdue 6h slot with nothing new since the last digest sends
+    nothing — no digest row, no channel call — but still advances last_run_at so
+    the 6h cadence stays anchored (next check is a fresh window)."""
+    from worker.digest import run_due_digest
+
+    now = datetime.now(PRAGUE_TZ)
+    stale = now - timedelta(hours=7)  # overdue, but no events since
+    db_session.add(SchedulerState(key=DIGEST_KEY, last_run_at=stale))
+    db_session.flush()
+
+    channel = _RecordingChannel()
+    fired = run_due_digest(db_session, channel, key=DIGEST_KEY, interval_hours=6)
+
+    assert fired is False
+    assert channel.calls == 0
+    assert _notification_of_type(db_session, NotificationType.DIGEST) is None
+    state = db_session.get(SchedulerState, DIGEST_KEY)
+    assert state.last_run_at == now  # slot consumed, no spam
+    assert state.last_run_at > stale
+
+
+def test_digest_sent_when_change_since_last_issue73(
+    db_session: Session,
+    frozen_clock,
+) -> None:
+    """Issue #73 / FR-N7: the same overdue slot, but a non-digest notification
+    (a demand change) exists since the last digest — so the digest fires."""
+    from worker.digest import run_due_digest
+
+    now = datetime.now(PRAGUE_TZ)
+    stale = now - timedelta(hours=7)
+    db_session.add(SchedulerState(key=DIGEST_KEY, last_run_at=stale))
+    db_session.add(
+        Notification(
+            type=NotificationType.SIGNUP_CREATED,
+            payload={"detail": "test"},
+            channel="discord",
+            status=NotificationStatus.PENDING,
+            created_at=now - timedelta(hours=1),
+        )
+    )
+    db_session.flush()
+
+    channel = _RecordingChannel()
+    fired = run_due_digest(db_session, channel, key=DIGEST_KEY, interval_hours=6)
+
+    assert fired is True
+    assert channel.calls == 1
+    digest = _notification_of_type(db_session, NotificationType.DIGEST)
+    assert digest is not None
+    assert digest.status == NotificationStatus.SENT
+    state = db_session.get(SchedulerState, DIGEST_KEY)
+    assert state.last_run_at == now
 
 
 def test_failed_discord_delivery_is_retried_AC10(
