@@ -5,7 +5,7 @@ import { AppRoutes } from '../App'
 import { cs } from '../i18n/cs'
 import { renderWithProviders } from '../test/render'
 import { makeDish, makeMe, makeUser, makeWeek, mockFetch } from '../test/fixtures'
-import { formatDayMonth } from '../utils/dates'
+import { addDays, formatDayMonth } from '../utils/dates'
 
 const twoMembers = () => [
   makeUser({ id: 1, name: 'admin', is_admin: true }),
@@ -50,6 +50,41 @@ describe('CookSummary (§14.5, AC-4)', () => {
     // Column header shows the date day-first ("D. M."), not month-first (MM-DD).
     expect(screen.getByText(formatDayMonth(today))).toBeInTheDocument()
     expect(screen.queryByText(today.slice(5))).not.toBeInTheDocument()
+  })
+
+  it('shows every planned dish-day across 30 days, incl. days not yet ordered (#93)', async () => {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date())
+    const far = addDays(today, 20) // ~3 weeks out, still inside the 30-day window
+    const ordered = makeDish({
+      id: 5,
+      name: 'Svíčková',
+      start_date: far,
+      end_date: far,
+      signups: [{ id: 1, user_id: 1, user_name: 'a', day: far, portions: 2 }],
+    })
+    const tenDaysOut = addDays(today, 10)
+    const planned = makeDish({
+      id: 6,
+      name: 'Guláš',
+      start_date: tenDaysOut,
+      end_date: tenDaysOut,
+      signups: [],
+    })
+    vi.stubGlobal(
+      'fetch',
+      mockFetch([
+        { path: '/me', body: makeMe({ id: 1, is_admin: true }) },
+        { path: '/weeks/current', body: makeWeek({ id: 9, start_date: today }) },
+        { path: '/users', body: twoMembers() },
+        { method: 'GET', path: '/dishes', body: [ordered, planned] },
+      ]),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/cook-summary' })
+
+    // A dish 20 days out shows its ordered portions (full 30-day reach)…
+    expect(await screen.findByTestId(`summary-${far}-5`)).toHaveTextContent('2')
+    // …and a planned dish nobody has ordered yet still appears (0 portions).
+    expect(screen.getByTestId(`summary-${tenDaysOut}-6`)).toBeInTheDocument()
   })
 
   it('redirects a non-admin member home', async () => {

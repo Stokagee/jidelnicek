@@ -59,6 +59,11 @@ export const cs = {
     portionsUnit: '×',
     noSignups: '—',
     createDish: 'Založit jídlo',
+    // #93: flat summary table (Day | Dish | Portions) for the next 30 days.
+    dayCol: 'Den',
+    dishCol: 'Jídlo',
+    portionsCol: 'Porcí',
+    noPortions: 'Na příštích 30 dní zatím žádné porce.',
     openChoosing: {
       enable: 'Povolit všem zakládat jídla',
       disable: 'Zrušit – zakládá jen kuchař a volitel',
